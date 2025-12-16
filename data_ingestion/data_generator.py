@@ -1,0 +1,101 @@
+import numpy as np
+import pandas as pd
+import os
+from datetime import datetime, timedelta
+from utils import *
+
+#one fixed sample path -> one realization
+rng = np.random.default_rng(2025)
+
+N_USERS = 5000
+N_RIDERS = 1000
+N_ORDERS = 50000
+data_path = "data/"
+
+start_date = datetime(2024, 1, 1)
+zones = np.array(["A", "B", "C"])
+
+# USERS
+users_signup_days = rng.integers(0, 180, N_USERS)
+
+users_df = pd.DataFrame({
+    "user_id": np.arange(N_USERS),
+    "signup_date": [start_date + timedelta(days=int(d)) for d in users_signup_days],
+    "zone": rng.choice(zones, N_USERS),
+})
+
+users_df.to_json(
+    os.path.join(data_path, "users.json"),
+    orient="records",
+    date_format="iso",
+    index=False
+)
+
+
+# RIDERS
+riders_signup_days = rng.integers(0, 180, N_RIDERS)
+riders_df = pd.DataFrame({
+    "rider_id": np.arange(N_RIDERS),
+    "signup_date": [start_date + timedelta(days=int(d)) for d in riders_signup_days],
+    "zone": rng.choice(["A", "B", "C"], N_RIDERS),
+})
+
+riders_df.to_json(
+    os.path.join(data_path, "riders.json"),
+    orient="records",
+    date_format="iso",
+    index=False
+)
+
+
+# ORDERS : if rider in the same zone as users, more likely to pick that rider
+user_zones = users_df["zone"].values
+rider_zones = riders_df["zone"].values
+
+W_SAME = 3.0
+W_DIFF = 1.0
+
+rider_prob_matrix = np.zeros((len(zones), N_RIDERS))
+
+for i, z in enumerate(zones): #create prob matrix for rider weighted by zone
+    weights = np.where(rider_zones == z, W_SAME, W_DIFF)
+    rider_prob_matrix[i] = weights / weights.sum() 
+
+
+zone_to_idx = {z: i for i, z in enumerate(zones)}
+user_zone_idx = np.array([zone_to_idx[z] for z in users_df["zone"]])
+
+order_rider_ids = np.empty(N_ORDERS, dtype=int)
+order_user_ids = rng.integers(0, N_USERS, size=N_ORDERS, dtype=int)
+for i in range(N_ORDERS):
+    z_idx = user_zone_idx[order_user_ids[i]]
+    order_rider_ids[i] = rng.choice(N_RIDERS, p=rider_prob_matrix[z_idx])
+
+
+distance = np.round(rng.uniform(0.5, 50, N_ORDERS), 2)
+prep = 5 + np.random.exponential(scale=2, size=N_ORDERS) # minutes
+
+order_times = generate_order_times(start_date, N_ORDERS, rng=rng)
+speed = get_speed(order_times)
+transport_time = compute_transport_time(distance, speed, rng=rng)
+delivery_time = transport_time + prep
+rating = compute_rating(transport_time, rng=rng)
+
+orders_df = pd.DataFrame({
+    "order_id": np.arange(N_ORDERS),
+    "user_id": order_user_ids,
+    "rider_id": order_rider_ids,
+    "order_time": order_times,
+    "prep_time": prep,
+    "distance_km": distance,
+    "delivery_time_minutes": delivery_time,
+    "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),
+    "rider_rating": rating
+})
+
+orders_df.to_json(
+    os.path.join(data_path, "orders.json"),
+    orient="records",
+    date_format="iso",
+    index=False
+)

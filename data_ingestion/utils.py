@@ -37,4 +37,4 @@ def compute_rating(transport_time, rating_noise=0.3, rng=None):
     expected_time = transport_time.mean()
     rating = 5 - np.clip((transport_time - expected_time) / expected_time * 2, 0, 4)
     rating = np.round(rating + rng.normal(0, rating_noise, len(rating)), 1)
-    return np.clip(rating, 1, 5)
+    return np.round(np.clip(rating, 1, 5))

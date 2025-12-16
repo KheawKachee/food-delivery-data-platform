@@ -86,7 +86,7 @@ orders_df = pd.DataFrame({
     "user_id": order_user_ids,
     "rider_id": order_rider_ids,
     "order_time": order_times,
-    "prep_time": prep,
+    "prep_time_minutes": prep,
     "distance_km": distance,
     "delivery_time_minutes": delivery_time,
     "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),

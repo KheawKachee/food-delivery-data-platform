@@ -1,6 +1,3 @@
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
-
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY,
     signup_date TIMESTAMP NOT NULL,

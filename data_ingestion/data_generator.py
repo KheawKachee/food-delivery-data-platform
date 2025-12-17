@@ -1,54 +1,80 @@
 import numpy as np
 import pandas as pd
+
+import glob
 import os
 from datetime import datetime, timedelta
 from utils import *
 
-#one fixed sample path -> one realization
+# one fixed sample path -> one realization
 rng = np.random.default_rng(2025)
 
 N_USERS = 5000
 N_RIDERS = 1000
 N_ORDERS = 50000
+
 data_path = "data/"
+users_data_path = os.path.join(data_path, "users.json")
+riders_data_path = os.path.join(data_path, "riders.json")
+orders_data_path = glob.glob(os.path.join(data_path, "orders_*.json"))
 
 start_date = datetime(2024, 1, 1)
-zones = np.array(["A", "B", "C"])
+start_order_id = 0
 
-# USERS
-users_signup_days = rng.integers(0, 180, N_USERS)
+if os.path.exists(users_data_path) and os.path.exists(riders_data_path):
+    print("Files found. Loading existing data...")
+    # Load the existing JSON files into DataFrames
+    users_df = pd.read_json(users_data_path)
+    riders_df = pd.read_json(riders_data_path)
+    users_zone = users_df["zone"].unique()
+    riders_zone = riders_df["zone"].unique()
 
-users_df = pd.DataFrame({
-    "user_id": np.arange(N_USERS),
-    "signup_date": [start_date + timedelta(days=int(d)) for d in users_signup_days],
-    "zone": rng.choice(zones, N_USERS),
-})
+    zones = np.union1d(users_zone, riders_zone)
+    if orders_data_path:
+        print("orders.json found. Loading existing orders...")
+        previous_orders_df = pd.read_json(max(orders_data_path))
+        N_ORDERS = 5000  # just add more n orders
+        start_date = pd.to_datetime(previous_orders_df["order_time"].max())
+        start_order_id = previous_orders_df["order_id"].max() + 1
 
-users_df.to_json(
-    os.path.join(data_path, "users.json"),
-    orient="records",
-    date_format="iso",
-    index=False
-)
+else:
+    print("Files not found. Generating inital data...")
+    zones = np.array(["A", "B", "C"])
 
+    # USERS
+    users_signup_days = rng.integers(0, 180, N_USERS)
 
-# RIDERS
-riders_signup_days = rng.integers(0, 180, N_RIDERS)
-riders_df = pd.DataFrame({
-    "rider_id": np.arange(N_RIDERS),
-    "signup_date": [start_date + timedelta(days=int(d)) for d in riders_signup_days],
-    "zone": rng.choice(["A", "B", "C"], N_RIDERS),
-})
+    users_df = pd.DataFrame(
+        {
+            "user_id": np.arange(N_USERS),
+            "signup_date": [
+                start_date + timedelta(days=int(d)) for d in users_signup_days
+            ],
+            "zone": rng.choice(zones, N_USERS),
+        }
+    )
 
-riders_df.to_json(
-    os.path.join(data_path, "riders.json"),
-    orient="records",
-    date_format="iso",
-    index=False
-)
+    users_df.to_json(users_data_path, orient="records", date_format="iso", index=False)
 
+    # RIDERS
+    riders_signup_days = rng.integers(0, 180, N_RIDERS)
+    riders_df = pd.DataFrame(
+        {
+            "rider_id": np.arange(N_RIDERS),
+            "signup_date": [
+                start_date + timedelta(days=int(d)) for d in riders_signup_days
+            ],
+            "zone": rng.choice(["A", "B", "C"], N_RIDERS),
+        }
+    )
+
+    riders_df.to_json(
+        riders_data_path, orient="records", date_format="iso", index=False
+    )
 
 # ORDERS : if rider in the same zone as users, more likely to pick that rider
+
+
 user_zones = users_df["zone"].values
 rider_zones = riders_df["zone"].values
 
@@ -57,9 +83,9 @@ W_DIFF = 1.0
 
 rider_prob_matrix = np.zeros((len(zones), N_RIDERS))
 
-for i, z in enumerate(zones): #create prob matrix for rider weighted by zone
+for i, z in enumerate(zones):  # create prob matrix for rider weighted by zone
     weights = np.where(rider_zones == z, W_SAME, W_DIFF)
-    rider_prob_matrix[i] = weights / weights.sum() 
+    rider_prob_matrix[i] = weights / weights.sum()
 
 
 zone_to_idx = {z: i for i, z in enumerate(zones)}
@@ -73,7 +99,7 @@ for i in range(N_ORDERS):
 
 
 distance = np.round(rng.uniform(0.5, 50, N_ORDERS), 2)
-prep = 5 + np.random.exponential(scale=2, size=N_ORDERS) # minutes
+prep = 5 + np.random.exponential(scale=2, size=N_ORDERS)  # minutes
 
 order_times = generate_order_times(start_date, N_ORDERS, rng=rng)
 speed = get_speed(order_times)
@@ -81,21 +107,27 @@ transport_time = compute_transport_time(distance, speed, rng=rng)
 delivery_time = transport_time + prep
 rating = compute_rating(transport_time, rng=rng)
 
-orders_df = pd.DataFrame({
-    "order_id": np.arange(N_ORDERS),
-    "user_id": order_user_ids,
-    "rider_id": order_rider_ids,
-    "order_time": order_times,
-    "prep_time_minutes": prep,
-    "distance_km": distance,
-    "delivery_time_minutes": delivery_time,
-    "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),
-    "rider_rating": rating
-})
+
+orders_df = pd.DataFrame(
+    {
+        "order_id": np.arange(start_order_id, start_order_id + N_ORDERS),
+        "user_id": order_user_ids,
+        "rider_id": order_rider_ids,
+        "order_time": order_times,
+        "prep_time_minutes": prep,
+        "distance_km": distance,
+        "delivery_time_minutes": delivery_time,
+        "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),
+        "rider_rating": rating,
+    }
+)
+
 
 orders_df.to_json(
-    os.path.join(data_path, "orders.json"),
+    os.path.join(data_path, f"orders_{datetime.now()}.json"),
     orient="records",
     date_format="iso",
-    index=False
+    index=False,
 )
+print(f"generate {N_ORDERS} orders finished")
+print(orders_df.describe().T)

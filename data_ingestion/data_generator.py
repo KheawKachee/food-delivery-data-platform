@@ -7,32 +7,33 @@ from datetime import datetime, timedelta
 from utils import *
 
 # one fixed sample path -> one realization
-rng = np.random.default_rng(2025)
+seed = None
+rng = np.random.default_rng(seed)
 
 N_USERS = 5000
 N_RIDERS = 1000
-N_ORDERS = 50000
+N_ORDERS = 5000
 
-data_path = "data/"
-users_data_path = os.path.join(data_path, "users.json")
-riders_data_path = os.path.join(data_path, "riders.json")
-orders_data_path = glob.glob(os.path.join(data_path, "orders_*.json"))
+DATA_PATH = "data/"
+USERS_DATA_PATH = os.path.join(DATA_PATH, "users.json")
+RIDERS_DATA_PATH = os.path.join(DATA_PATH, "riders.json")
+ORDERS_DATA_PATH = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
 
 start_date = datetime(2024, 1, 1)
 start_order_id = 0
 
-if os.path.exists(users_data_path) and os.path.exists(riders_data_path):
+if os.path.exists(USERS_DATA_PATH) and os.path.exists(RIDERS_DATA_PATH):
     print("Files found. Loading existing data...")
     # Load the existing JSON files into DataFrames
-    users_df = pd.read_json(users_data_path)
-    riders_df = pd.read_json(riders_data_path)
+    users_df = pd.read_json(USERS_DATA_PATH)
+    riders_df = pd.read_json(RIDERS_DATA_PATH)
     users_zone = users_df["zone"].unique()
     riders_zone = riders_df["zone"].unique()
 
     zones = np.union1d(users_zone, riders_zone)
-    if orders_data_path:
+    if ORDERS_DATA_PATH:
         print("orders.json found. Loading existing orders...")
-        previous_orders_df = pd.read_json(max(orders_data_path))
+        previous_orders_df = pd.read_json(max(ORDERS_DATA_PATH))
         N_ORDERS = 5000  # just add more n orders
         start_date = pd.to_datetime(previous_orders_df["order_time"].max())
         start_order_id = previous_orders_df["order_id"].max() + 1
@@ -54,7 +55,7 @@ else:
         }
     )
 
-    users_df.to_json(users_data_path, orient="records", date_format="iso", index=False)
+    users_df.to_json(USERS_DATA_PATH, orient="records", date_format="iso", index=False)
 
     # RIDERS
     riders_signup_days = rng.integers(0, 180, N_RIDERS)
@@ -69,7 +70,7 @@ else:
     )
 
     riders_df.to_json(
-        riders_data_path, orient="records", date_format="iso", index=False
+        RIDERS_DATA_PATH, orient="records", date_format="iso", index=False
     )
 
 # ORDERS : if rider in the same zone as users, more likely to pick that rider
@@ -124,7 +125,7 @@ orders_df = pd.DataFrame(
 
 
 orders_df.to_json(
-    os.path.join(data_path, f"orders_{datetime.now()}.json"),
+    os.path.join(DATA_PATH, f"orders_{datetime.now()}.json"),
     orient="records",
     date_format="iso",
     index=False,

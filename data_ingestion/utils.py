@@ -44,9 +44,16 @@ def compute_transport_time(distance, speed, noise_std=0.2, rng=None):
     return distance / speed * noise * 60  # minutes
 
 
-def compute_rating(transport_time, rating_noise=0.3, rng=None):
+def compute_rating(transport_time, rating_noise=0.3, NAN_RATE=0.1, rng=None):
     rng = rng or np.random.default_rng()
+
     expected_time = transport_time.mean()
     rating = 5 - np.clip((transport_time - expected_time) / expected_time * 2, 0, 4)
+
     rating = np.round(rating + rng.normal(0, rating_noise, len(rating)), 1)
-    return np.round(np.clip(rating, 1, 5))
+    rating = np.clip(rating, 1, 5)
+
+    no_rating_mask = rng.random(len(rating)) < NAN_RATE
+    rating[no_rating_mask] = np.nan
+
+    return np.round(rating, 1)

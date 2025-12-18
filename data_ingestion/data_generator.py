@@ -35,7 +35,7 @@ if os.path.exists(USERS_DATA_PATH) and os.path.exists(RIDERS_DATA_PATH):
         print("orders.json found. Loading existing orders...")
         previous_orders_df = pd.read_json(max(ORDERS_DATA_PATH))
         N_ORDERS = 5000  # just add more n orders
-        start_date = pd.to_datetime(previous_orders_df["order_time"].max())
+        start_date = pd.to_datetime(previous_orders_df["order_ts"].max())
         start_order_id = previous_orders_df["order_id"].max() + 1
 
 else:
@@ -100,13 +100,19 @@ for i in range(N_ORDERS):
 
 
 distance = np.round(rng.uniform(0.5, 50, N_ORDERS), 2)
-prep = 5 + np.random.exponential(scale=2, size=N_ORDERS)  # minutes
 
-order_times = generate_order_times(start_date, N_ORDERS, rng=rng)
-speed = get_speed(order_times)
-transport_time = compute_transport_time(distance, speed, rng=rng)
-delivery_time = transport_time + prep
-rating = compute_rating(transport_time, rng=rng)
+order_ts = generate_order_times(start_date, N_ORDERS, rng=rng)
+
+prep_mins = 5 + 2.5 * rng.exponential(scale=3, size=N_ORDERS)
+
+prep_ts = [ts + timedelta(minutes=float(d)) for ts, d in zip(order_ts, prep_mins)]
+
+speed = get_speed(order_ts)
+transport_mins = compute_transport_time(distance, speed, rng=rng)
+delivery_ts = [
+    ts + timedelta(minutes=float(d)) for ts, d in zip(prep_ts, transport_mins)
+]
+rating = compute_rating(transport_mins + 0.25 * prep_mins, rng=rng)
 
 
 orders_df = pd.DataFrame(
@@ -114,10 +120,10 @@ orders_df = pd.DataFrame(
         "order_id": np.arange(start_order_id, start_order_id + N_ORDERS),
         "user_id": order_user_ids,
         "rider_id": order_rider_ids,
-        "order_time": order_times,
-        "prep_time_minutes": prep,
+        "order_ts": order_ts,
+        "food_ready_ts": prep_ts,
         "distance_km": distance,
-        "delivery_time_minutes": delivery_time,
+        "deliveried_ts": delivery_ts,
         "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),
         "rider_rating": rating,
     }

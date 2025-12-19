@@ -31,7 +31,6 @@ for filepath in glob.glob("data/orders_*.json"):
 
 payloads_df = pd.DataFrame(rows)
 
-
 stmt = text(
     """
 INSERT INTO raw_orders (order_id, payload, ingest_ts)

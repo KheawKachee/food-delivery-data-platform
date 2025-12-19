@@ -18,6 +18,7 @@ CREATE TABLE stg_riders (
     signup_date TIMESTAMP NOT NULL,
     zone VARCHAR(5) NOT NULL,
     avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
+    n_jobs INT NOT NULL
 );
 
 CREATE TABLE stg_orders (
@@ -25,11 +26,11 @@ CREATE TABLE stg_orders (
     user_id INT NOT NULL,
     rider_id INT NOT NULL,
     order_ts TIMESTAMP NOT NULL,
-    food_ready_ts NUMERIC(6,2) CHECK (food_ready_ts >= 0),
+    food_ready_ts TIMESTAMP NOT NULL,
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
-    deliveried_ts NUMERIC(6,2) CHECK (deliveried_ts >= 0),
+    deliveried_ts TIMESTAMP NOT NULL,
     price_baht NUMERIC(10,2) CHECK (price_baht >= 0),
-    rider_rating NUMERIC(3,1) CHECK (rider_rating BETWEEN 1 AND 5)
+    rider_rating NUMERIC(3,1)
 );
 
 

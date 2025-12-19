@@ -23,19 +23,20 @@ for filepath in glob.glob("data/orders_*.json"):
         for record in records:
             rows.append(
                 {
+                    "order_id": record["order_id"],
                     "payload": json.dumps(record),  # The specific sub-payload
                     "ingest_ts": dt.datetime.now(),
                 }
             )
 
 payloads_df = pd.DataFrame(rows)
-payloads_df.index.name = "event_id"
 
 
 stmt = text(
     """
-INSERT INTO raw_orders (payload, ingest_ts)
-VALUES (:payload, :ingest_ts)
+INSERT INTO raw_orders (order_id, payload, ingest_ts)
+VALUES (:order_id, :payload, :ingest_ts)
+ON CONFLICT (order_id) DO NOTHING;
 """
 )
 

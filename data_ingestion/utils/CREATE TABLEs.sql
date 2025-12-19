@@ -16,8 +16,8 @@ CREATE TABLE stg_users (
 CREATE TABLE stg_riders (
     rider_id INT PRIMARY KEY,
     signup_date TIMESTAMP NOT NULL,
-    zone VARCHAR(5) NOT NULL
-    avg_rider_rating NUMERIC(2,2) CHECK (avg_rider_rating >= 0)
+    zone VARCHAR(5) NOT NULL,
+    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
 );
 
 CREATE TABLE stg_orders (
@@ -39,7 +39,7 @@ CREATE TABLE delivery_time (
     deliveried_ts NUMERIC(6,2) CHECK (deliveried_ts >= 0),
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
     zone VARCHAR(5) NOT NULL,
-    avg_rider_rating NUMERIC(2,2) CHECK (avg_rider_rating >= 0)
+    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
 );
 
 CREATE TABLE hourly_total_spends (

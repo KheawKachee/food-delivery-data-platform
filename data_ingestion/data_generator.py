@@ -4,7 +4,7 @@ import pandas as pd
 import glob
 import os
 from datetime import datetime, timedelta
-from utils import *
+from data_ingestion.utils.utils import *
 
 # one fixed sample path -> one realization
 seed = None

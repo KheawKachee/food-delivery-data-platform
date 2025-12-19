@@ -11,10 +11,8 @@ DATA_PATH = "data/"
 
 engine = create_engine(DATABASE_URL)
 
-# LOAD TABLE
-users_df = pd.read_sql_table("users", engine)
-riders_df = pd.read_sql_table("riders", engine)
-orders_df = pd.read_sql_table("orders", engine)
+# LOAD RAW TABLE
+raw_df = pd.read_sql_table("users", engine)
 
 # LOAD PAYLOAD
 payload_df = pd.read_json("")

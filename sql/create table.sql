@@ -39,7 +39,7 @@ CREATE TABLE stg_orders (
 
 
 ---mart table---
-CREATE TABLE delivery_time (
+CREATE TABLE avg_rider_rating (
     order_ts DATE PRIMARY KEY,
     deliveried_ts NUMERIC(6,2) CHECK (deliveried_ts >= 0),
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),

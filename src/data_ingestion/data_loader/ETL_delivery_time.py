@@ -15,7 +15,12 @@ log = LoggingMixin().log
 
 def ETL_delivery_time():
     try:
+        load_dotenv()
+        engine = create_engine(os.getenv("DATABASE_URL"))
+
+        stg_orders_df = pd.read_sql_table("stg_orders", engine)
         pass
+
     except Exception as e:
         log.error("".join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)

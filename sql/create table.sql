@@ -39,11 +39,13 @@ CREATE TABLE stg_orders (
 
 
 ---mart table---
+---delivery_time : hypothesis as avg_rider_rating have relation with these params--- 
 CREATE TABLE avg_rider_rating (
     order_ts DATE PRIMARY KEY,
-    deliveried_ts NUMERIC(6,2) CHECK (deliveried_ts >= 0),
+    delivery_time NUMERIC(6,2) CHECK (deliveried_ts >= 0),
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
-    zone VARCHAR(5) NOT NULL,
+    user_zone VARCHAR(5) NOT NULL,
+    rider_zone VARCHAR(5) NOT NULL,
     avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
 );
 

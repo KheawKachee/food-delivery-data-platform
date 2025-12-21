@@ -1,6 +1,6 @@
 ---raw table---
 CREATE TABLE raw_orders (
-    event_id BIGSERIAL PRIMARY KEY,
+    order_id BIGSERIAL PRIMARY KEY,
     payload JSONB NOT NULL,
     ingest_ts TIMESTAMP DEFAULT now()
 );
@@ -17,8 +17,8 @@ CREATE TABLE stg_riders (
     rider_id INT PRIMARY KEY,
     signup_date TIMESTAMP NOT NULL,
     zone VARCHAR(5) NOT NULL,
-    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
-    n_jobs INT NOT NULL
+    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0),
+    n_jobs INT 
 );
 
 CREATE TABLE stg_orders (
@@ -30,7 +30,11 @@ CREATE TABLE stg_orders (
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
     deliveried_ts TIMESTAMP NOT NULL,
     price_baht NUMERIC(10,2) CHECK (price_baht >= 0),
-    rider_rating NUMERIC(3,1)
+    rider_rating NUMERIC(3,1),
+
+    -- Adding the Constraints
+    FOREIGN KEY (user_id) REFERENCES stg_users(user_id),
+    FOREIGN KEY (rider_id) REFERENCES stg_riders(rider_id)
 );
 
 

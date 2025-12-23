@@ -29,8 +29,6 @@ def data_generator(execution_date: str):
 
         debug_vars(
             execution_date=execution_date,
-            start_date=start_date,
-            start_order_id=start_order_id,
             seed=seed,
             n_users=N_USERS,
             n_riders=N_RIDERS,
@@ -53,12 +51,13 @@ def data_generator(execution_date: str):
 
             zones = np.union1d(users_zone, riders_zone)
 
-            order_file = sorted(glob.glob(os.path.join(DATA_PATH, "orders_*.json")))
+            order_file = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
             if order_file != []:
-                latest_file = order_file[-1]
+                latest_file = sorted(order_file, key=os.path.getmtime, reverse=True)[0]
                 previous_orders_df = pd.read_json(latest_file)
                 start_order_id = previous_orders_df["order_id"].max() + 1
                 start_date = pd.to_datetime(previous_orders_df["order_ts"].max())
+                debug_vars(start_date=start_date, start_order_id=start_order_id)
 
         else:
             log.info("Files not found. Generating inital data...")

@@ -16,9 +16,7 @@ CREATE TABLE stg_users (
 CREATE TABLE stg_riders (
     rider_id INT PRIMARY KEY,
     signup_date TIMESTAMP NOT NULL,
-    zone VARCHAR(5) NOT NULL,
-    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0),
-    n_jobs INT 
+    zone VARCHAR(5) NOT NULL
 );
 
 CREATE TABLE stg_orders (
@@ -40,13 +38,20 @@ CREATE TABLE stg_orders (
 
 ---mart table---
 ---delivery_time : hypothesis as avg_rider_rating have relation with these params--- 
-CREATE TABLE avg_rider_rating (
+CREATE TABLE delivery_time (
     order_ts DATE PRIMARY KEY,
     delivery_time NUMERIC(6,2) CHECK (deliveried_ts >= 0),
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
     user_zone VARCHAR(5) NOT NULL,
     rider_zone VARCHAR(5) NOT NULL,
     avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0)
+);
+
+CREATE TABLE avg_rider_rating (
+    rider_id INT NOT NULL,
+    rider_zone VARCHAR(5) NOT NULL,
+    avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0),
+    n_jobs INT NOT NULL
 );
 
 CREATE TABLE hourly_total_spends (

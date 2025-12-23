@@ -21,7 +21,11 @@ def ETL_avg_rider_rating():
         stg_orders_df = pd.read_sql_table("stg_orders", engine)
         df = pd.DataFrame(
             columns=[
-                "rider_id" "rider_zone",
+                "order_ts",
+                "delivery_time",
+                "distance_km",
+                "user_zone",
+                "rider_zone",
                 "avg_rider_rating",
             ]
         )

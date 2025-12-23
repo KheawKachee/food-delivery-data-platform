@@ -25,8 +25,8 @@ def ETL_avg_rider_rating():
         )
 
         df["rider_id"] = stg_riders_df["rider_id"]
-        df["rider_zone"] = stg_riders_df["rider_zone"]
-        df["n_jobs"] = stg_orders_df.groupby("rider_id").count()
+        df["rider_zone"] = stg_riders_df["zone"]
+        df["n_jobs"] = stg_orders_df.groupby("rider_id")["order_id"].transform("count")
         df["avg_rider_rating"] = stg_orders_df.groupby("rider_id")[
             "rider_rating"
         ].transform("mean")
@@ -35,7 +35,7 @@ def ETL_avg_rider_rating():
             f"""
         INSERT INTO avg_rider_rating (rider_id, rider_zone, n_jobs, avg_rider_rating)
         VALUES (:rider_id, :rider_zone, :n_jobs, :avg_rider_rating )
-        ON CONFLICT (order_id) DO UPDATE SET
+        ON CONFLICT (rider_id) DO UPDATE SET
             rider_id = EXCLUDED.rider_id,
             rider_zone = EXCLUDED.rider_zone,
             n_jobs = EXCLUDED.n_jobs,

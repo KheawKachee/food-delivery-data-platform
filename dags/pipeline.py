@@ -30,16 +30,15 @@ with DAG(
         bash_command=f"python src/data_ingestion/data_loader/ingestion.py",
     )
 
-    etl = BashOperator(
-        task_id="etl_to_staging",
+    etl_order = BashOperator(
+        task_id="etl_order_to_staging",
         bash_command=f"python src/data_ingestion/data_loader/ETL_orders.py",
     )
 
-    query_stg_order = SQLExecuteQueryOperator(
-        task_id="query_stg_order",
-        sql="SELECT * FROM stg_orders WHERE order_id <= 5;",
-        conn_id="postgres",  # must match a defined connection
+    etl_avg_rider_rating = BashOperator(
+        task_id="etl_avg_rider_rating",
+        bash_command=f"python src/data_ingestion/data_loader/ETL_avg_rider_rating.py",
     )
 
 
-generate >> load_raw >> etl >> query_stg_order
+generate >> load_raw >> etl_order >> etl_avg_rider_rating

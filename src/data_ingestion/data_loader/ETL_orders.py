@@ -1,9 +1,10 @@
 import pandas as pd
-import datetime as dt
+import numpy as np
+
 import os
 import traceback
 import sys
-import glob
+
 import json
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
@@ -63,7 +64,9 @@ def etl_order():
             rider_rating = EXCLUDED.rider_rating;
         """
         )
-
+        stg_orders_df["rider_rating"] = stg_orders_df["rider_rating"].where(
+            stg_orders_df["rider_rating"].notna(), None
+        )
         log.info(stg_orders_df[stg_orders_df["rider_rating"].isna()])
         with engine.begin() as conn:
             conn.execute(stmt, stg_orders_df.to_dict(orient="records"))

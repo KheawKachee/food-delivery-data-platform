@@ -48,7 +48,7 @@ CREATE TABLE delivery_time (
 );
 
 CREATE TABLE avg_rider_rating (
-    rider_id INT NOT NULL,
+    rider_id INT NOT NULL PRIMARY KEY,
     rider_zone VARCHAR(5) NOT NULL,
     avg_rider_rating NUMERIC(3,2) CHECK (avg_rider_rating >= 0),
     n_jobs INT NOT NULL

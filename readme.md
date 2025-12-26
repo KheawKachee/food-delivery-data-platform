@@ -1,5 +1,5 @@
 # Food Delivery Data Platform
-
+end-to-end data engineering + data science + machine learning project
 ## Overview
 
 This project is an **end-to-end data engineering + data science + machine learning system** inspired by real food delivery platforms (e.g. LINE MAN). The goal is to simulate how a real company collects data, processes it, analyzes it, and uses machine learning models to support business decisions.

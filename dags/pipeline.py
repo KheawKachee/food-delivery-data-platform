@@ -54,6 +54,6 @@ with DAG(
 (
     generate
     >> load_raw
-    >> etl_order
-    >> [etl_avg_rider_rating, etl_hourly_total_spends, etl_delivery_time]
+    >> stg_order
+    >> [mart_avg_rider_rating, mart_delivery_time, mart_hourly_total_spends]
 )

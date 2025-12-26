@@ -32,22 +32,22 @@ with DAG(
         bash_command=f"python src/data_ingestion/data_loader/ingestion.py",
     )
 
-    etl_order = BashOperator(
-        task_id="etl_order_to_staging",
-        bash_command=f"python src/data_ingestion/data_loader/ETL_orders.py",
+    stg_order = BashOperator(
+        task_id="to_stg_order",
+        bash_command=f"python src/data_ingestion/data_loader/stg_order.py",
     )
 
-    etl_avg_rider_rating = BashOperator(
-        task_id="etl_avg_rider_rating",
-        bash_command=f"python src/data_ingestion/data_loader/ETL_avg_rider_rating.py",
+    mart_avg_rider_rating = BashOperator(
+        task_id="mart_avg_rider_rating",
+        bash_command=f"python src/data_ingestion/data_loader/mart_avg_rider_rating.py",
     )
-    etl_hourly_total_spends = BashOperator(
-        task_id="etl_hourly_total_spends",
-        bash_command=f"python src/data_ingestion/data_loader/ETL_delivery_time.py",
+    mart_delivery_time = BashOperator(
+        task_id="mart_delivery_time",
+        bash_command=f"python src/data_ingestion/data_loader/mart_delivery_time.py",
     )
-    etl_delivery_time = BashOperator(
-        task_id="etl_delivery_time",
-        bash_command=f"python src/data_ingestion/data_loader/ETL_hourly_total_spends.py",
+    mart_hourly_total_spends = BashOperator(
+        task_id="mart_hourly_total_spends",
+        bash_command=f"python src/data_ingestion/data_loader/mart_hourly_total_spends.py",
     )
 
 

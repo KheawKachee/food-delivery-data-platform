@@ -28,7 +28,7 @@ CREATE TABLE stg_orders (
     order_ts TIMESTAMP NOT NULL,
     food_ready_ts TIMESTAMP NOT NULL,
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
-    deliveried_ts TIMESTAMP NOT NULL,
+    delivered_ts TIMESTAMP NOT NULL,
     price_baht NUMERIC(10,2) CHECK (price_baht >= 0),
     rider_rating NUMERIC(3,1),
 

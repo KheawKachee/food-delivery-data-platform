@@ -6,12 +6,12 @@ import sys
 import glob
 import os
 import sys
-from datetime import datetime, timedelta
+import datetime as dt
 from utils import *
 
-from airflow.utils.log.logging_mixin import LoggingMixin
+import logging
 
-log = LoggingMixin().log
+log = logging.getLogger(__name__)
 
 
 def data_generator(execution_date: str):
@@ -42,7 +42,7 @@ def data_generator(execution_date: str):
         debug_vars(data_path=DATA_PATH)
 
         if os.path.exists(USERS_DATA_PATH) and os.path.exists(RIDERS_DATA_PATH):
-            log.info("Files found. Loading existing data...")
+            print("Files found. Loading existing data...")
             # Load the existing JSON files into DataFrames
             users_df = pd.read_json(USERS_DATA_PATH)
             riders_df = pd.read_json(RIDERS_DATA_PATH)
@@ -63,16 +63,19 @@ def data_generator(execution_date: str):
 
                 file_dt = pd.to_datetime(latest_filename)
 
-                if file_dt != execution_date:
+                if file_dt.date() != execution_date.date():
                     previous_orders_df = pd.read_json(latest_file)
 
                     start_order_id = previous_orders_df["order_id"].max() + 1
                     start_date = pd.to_datetime(previous_orders_df["order_ts"].max())
 
                     debug_vars(start_date=start_date, start_order_id=start_order_id)
+                else:
+                    print(f"already generated for this date ({execution_date.date()})")
+                    return None
 
         else:
-            log.info("Files not found. Generating inital data...")
+            print("Files not found. Generating inital data...")
             zones = np.array(["A", "B", "C"])
 
             # USERS
@@ -82,7 +85,8 @@ def data_generator(execution_date: str):
                 {
                     "user_id": np.arange(N_USERS),
                     "signup_date": [
-                        start_date + timedelta(days=int(d)) for d in users_signup_days
+                        start_date + dt.timedelta(days=int(d))
+                        for d in users_signup_days
                     ],
                     "zone": rng.choice(zones, N_USERS),
                 }
@@ -98,7 +102,8 @@ def data_generator(execution_date: str):
                 {
                     "rider_id": np.arange(N_RIDERS),
                     "signup_date": [
-                        start_date + timedelta(days=int(d)) for d in riders_signup_days
+                        start_date + dt.timedelta(days=int(d))
+                        for d in riders_signup_days
                     ],
                     "zone": rng.choice(["A", "B", "C"], N_RIDERS),
                 }
@@ -137,13 +142,14 @@ def data_generator(execution_date: str):
         prep_mins = 5 + 2.5 * rng.exponential(scale=3, size=N_ORDERS)
 
         prep_ts = [
-            ts + timedelta(minutes=float(d)) for ts, d in zip(order_ts, prep_mins)
+            ts + dt.timedelta(minutes=float(d)) for ts, d in zip(order_ts, prep_mins)
         ]
 
         speed = get_speed(order_ts)
         transport_mins = compute_transport_time(distance, speed, rng=rng)
         delivery_ts = [
-            ts + timedelta(minutes=float(d)) for ts, d in zip(prep_ts, transport_mins)
+            ts + dt.timedelta(minutes=float(d))
+            for ts, d in zip(prep_ts, transport_mins)
         ]
         rating = compute_rating(transport_mins + 0.25 * prep_mins, rng=rng)
 
@@ -161,21 +167,34 @@ def data_generator(execution_date: str):
             }
         )
 
+        orders_df["order_ts"] = pd.to_datetime(orders_df["order_ts"])
+
+        orders_df = orders_df[
+            orders_df["order_ts"].dt.date
+            <= (execution_date + pd.Timedelta(days=1)).date()
+        ]
+
+        print((execution_date + pd.Timedelta(days=1)).date())
+
         orders_df.to_json(
             os.path.join(DATA_PATH, f"orders_{execution_date}.json"),
             orient="records",
             date_format="iso",
             index=False,
         )
-        log.info(f"generate {N_ORDERS} orders finished")
-        log.info(orders_df.describe().T)
+        print(f"generate {N_ORDERS} orders finished")
+        print(orders_df.describe().T)
     except Exception as e:
-        log.error("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+        print(
+            "".join(traceback.format_exception(type(e), e, e.__traceback__)),
+        )
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    if sys.argv[1]:
-        data_generator(sys.argv[1])  # exe date
+    if len(sys.argv) > 1:
+        execution_date = pd.to_datetime(sys.argv[1])
     else:
-        data_generator(datetime.now()),
+        execution_date = pd.Timestamp.now()
+
+    data_generator(execution_date)

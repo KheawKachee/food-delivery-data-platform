@@ -8,9 +8,9 @@ import json
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
-from airflow.utils.log.logging_mixin import LoggingMixin
+import logging
 
-log = LoggingMixin().log
+log = logging.getLogger(__name__)
 
 
 def ETL_hourly_total_spends():
@@ -43,9 +43,11 @@ def ETL_hourly_total_spends():
 
         with engine.begin() as conn:
             conn.execute(stmt, df.to_dict(orient="records"))
-            log.info("query successfully")
+            print("query successfully")
     except Exception as e:
-        log.error("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+        print(
+            "".join(traceback.format_exception(type(e), e, e.__traceback__)),
+        )
         sys.exit(1)
 
 

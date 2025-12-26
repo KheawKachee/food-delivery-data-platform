@@ -1,4 +1,5 @@
 ---raw table---
+create schema public;
 CREATE TABLE raw_orders (
     order_id BIGSERIAL PRIMARY KEY,
     payload JSONB NOT NULL,

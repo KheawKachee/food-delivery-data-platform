@@ -9,9 +9,9 @@ import json
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
-from airflow.utils.log.logging_mixin import LoggingMixin
+import logging
 
-log = LoggingMixin().log
+log = logging.getLogger(__name__)
 
 
 # CONFIG
@@ -43,7 +43,7 @@ def etl_order():
         ]
 
         if stg_orders_df.duplicated(subset=["order_id"]).sum() == 0:
-            log.info("no duplication")
+            print("no duplication")
         else:
             stg_orders_df = stg_orders_df.drop_duplicates(
                 subset=["order_id"], keep="first"
@@ -67,12 +67,14 @@ def etl_order():
         stg_orders_df["rider_rating"] = stg_orders_df["rider_rating"].where(
             stg_orders_df["rider_rating"].notna(), None
         )
-        log.info(stg_orders_df[stg_orders_df["rider_rating"].isna()])
+        print(stg_orders_df[stg_orders_df["rider_rating"].isna()])
         with engine.begin() as conn:
             conn.execute(stmt, stg_orders_df.to_dict(orient="records"))
-            log.info("query successfully")
+            print("query successfully")
     except Exception as e:
-        log.error("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+        print(
+            "".join(traceback.format_exception(type(e), e, e.__traceback__)),
+        )
         sys.exit(1)
 
 

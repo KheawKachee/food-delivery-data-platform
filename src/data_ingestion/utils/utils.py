@@ -1,13 +1,14 @@
 import numpy as np
 from datetime import timedelta
-from airflow.utils.log.logging_mixin import LoggingMixin
 
-log = LoggingMixin().log
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def debug_vars(**variables):
     for name, value in variables.items():
-        log.info(f"{name} : {value}")
+        print(f"{name} : {value}")
 
 
 def generate_order_times(

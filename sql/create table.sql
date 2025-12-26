@@ -1,4 +1,5 @@
 ---raw table---
+drop schema if exists public cascade;
 create schema public;
 CREATE TABLE raw_orders (
     order_id BIGSERIAL PRIMARY KEY,

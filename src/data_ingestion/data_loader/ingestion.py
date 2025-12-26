@@ -48,7 +48,9 @@ def ingest():
             """
         INSERT INTO raw_orders (order_id, payload, ingest_ts)
         VALUES (:order_id, :payload, :ingest_ts)
-        ON CONFLICT (order_id) DO NOTHING;
+        ON CONFLICT (order_id) DO UPDATE SET
+            payload = EXCLUDED.payload,
+            ingest_ts = EXCLUDED.ingest_ts;
         """
         )
 

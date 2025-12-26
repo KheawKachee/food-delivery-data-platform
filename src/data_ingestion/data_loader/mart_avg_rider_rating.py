@@ -20,23 +20,26 @@ def ETL_avg_rider_rating():
 
         stg_orders_df = pd.read_sql_table("stg_orders", engine)
         stg_riders_df = pd.read_sql_table("stg_riders", engine)
-        df = pd.DataFrame(
-            columns=["rider_id", "rider_zone", "avg_rider_rating", "n_jobs"]
+
+        # Aggregate per rider
+        agg_df = (
+            stg_orders_df.groupby("rider_id")
+            .agg(
+                n_jobs=("order_id", "count"), avg_rider_rating=("rider_rating", "mean")
+            )
+            .reset_index()
         )
 
-        df["rider_id"] = stg_riders_df["rider_id"]
-        df["rider_zone"] = stg_riders_df["zone"]
-        df["n_jobs"] = stg_orders_df.groupby("rider_id")["order_id"].transform("count")
-        df["avg_rider_rating"] = stg_orders_df.groupby("rider_id")[
-            "rider_rating"
-        ].transform("mean")
+        df = stg_riders_df.merge(agg_df, on="rider_id", how="left")
+        df.rename(columns={"zone": "rider_zone"}, inplace=True)
+        df["n_jobs"] = df["n_jobs"].fillna(0).astype(int)
+        df["avg_rider_rating"] = df["avg_rider_rating"].fillna(0)
 
         stmt = text(
-            f"""
+            """
         INSERT INTO avg_rider_rating (rider_id, rider_zone, n_jobs, avg_rider_rating)
-        VALUES (:rider_id, :rider_zone, :n_jobs, :avg_rider_rating )
+        VALUES (:rider_id, :rider_zone, :n_jobs, :avg_rider_rating)
         ON CONFLICT (rider_id) DO UPDATE SET
-            rider_id = EXCLUDED.rider_id,
             rider_zone = EXCLUDED.rider_zone,
             n_jobs = EXCLUDED.n_jobs,
             avg_rider_rating = EXCLUDED.avg_rider_rating
@@ -45,12 +48,10 @@ def ETL_avg_rider_rating():
 
         with engine.begin() as conn:
             conn.execute(stmt, df.to_dict(orient="records"))
-            print("query successfully")
+            print("ETL successfully completed")
 
     except Exception as e:
-        print(
-            "".join(traceback.format_exception(type(e), e, e.__traceback__)),
-        )
+        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)
 
 

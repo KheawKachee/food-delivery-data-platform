@@ -7,6 +7,7 @@ from .utils import (
     get_speed,
     compute_transport_time,
     compute_rating,
+    generate_orders,
 )
 
 # Optional: define what is exported for 'from package import *'
@@ -17,4 +18,5 @@ __all__ = [
     "get_speed",
     "compute_transport_time",
     "compute_rating",
+    "generate_orders",
 ]

@@ -46,6 +46,7 @@ def account_setup():
     with engine.begin() as conn:
         conn.execute(user_stmt, user_records)
         conn.execute(rider_stmt, rider_records)
+        print("Staging users and riders completed.")
 
 
 if __name__ == "__main__":

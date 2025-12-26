@@ -113,45 +113,31 @@ def data_generator(execution_date: str):
                 RIDERS_DATA_PATH, orient="records", date_format="iso", index=False
             )
 
-        # ORDERS : if rider in the same zone as users, more likely to pick that rider
+        # ORDERS : if rider in the same zone as users, more likely to pick that rider , proceeds in matrix operations
 
-        rider_zones = riders_df["zone"].values
-
-        W_SAME = 3.0
-        W_DIFF = 1.0
-
-        rider_prob_matrix = np.zeros((len(zones), N_RIDERS))
-
-        for i, z in enumerate(zones):  # create prob matrix for rider weighted by zone
-            weights = np.where(rider_zones == z, W_SAME, W_DIFF)
-            rider_prob_matrix[i] = weights / weights.sum()
-
-        zone_to_idx = {z: i for i, z in enumerate(zones)}
-        user_zone_idx = np.array([zone_to_idx[z] for z in users_df["zone"]])
-
-        order_rider_ids = np.empty(N_ORDERS, dtype=int)
-        order_user_ids = rng.integers(0, N_USERS, size=N_ORDERS, dtype=int)
-        for i in range(N_ORDERS):
-            z_idx = user_zone_idx[order_user_ids[i]]
-            order_rider_ids[i] = rng.choice(N_RIDERS, p=rider_prob_matrix[z_idx])
-
-        distance = np.round(rng.uniform(0.5, 50, N_ORDERS), 2)
+        order_user_ids, order_rider_ids, distance = generate_orders(
+            users_df, riders_df, zones, N_ORDERS, rng
+        )
 
         order_ts = generate_order_times(start_date, N_ORDERS, rng=rng)
 
         prep_mins = 5 + 2.5 * rng.exponential(scale=3, size=N_ORDERS)
+        prep_timedelta = [dt.timedelta(minutes=m) for m in prep_mins]
 
         prep_ts = [
             ts + dt.timedelta(minutes=float(d)) for ts, d in zip(order_ts, prep_mins)
         ]
 
         speed = get_speed(order_ts)
-        transport_mins = compute_transport_time(distance, speed, rng=rng)
-        delivery_ts = [
-            ts + dt.timedelta(minutes=float(d))
-            for ts, d in zip(prep_ts, transport_mins)
-        ]
-        rating = compute_rating(transport_mins + 0.25 * prep_mins, rng=rng)
+        transport_timedelta = compute_transport_time(distance, speed, rng=rng)
+        delivery_ts = [ts + d for ts, d in zip(prep_ts, transport_timedelta)]
+        rating = compute_rating(
+            [t + 0.25 * p for t, p in zip(transport_timedelta, prep_timedelta)], rng=rng
+        )
+
+        price_baht = (
+            np.round(50 + distance * rng.uniform(10, 20, N_ORDERS), 2) + distance * 1.25
+        )
 
         orders_df = pd.DataFrame(
             {
@@ -161,8 +147,8 @@ def data_generator(execution_date: str):
                 "order_ts": order_ts,
                 "food_ready_ts": prep_ts,
                 "distance_km": distance,
-                "deliveried_ts": delivery_ts,
-                "price_baht": np.round(rng.uniform(50, 500, N_ORDERS), 2),
+                "delivered_ts": delivery_ts,
+                "price_baht": price_baht,
                 "rider_rating": rating,
             }
         )

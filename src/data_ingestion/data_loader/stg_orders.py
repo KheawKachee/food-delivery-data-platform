@@ -36,7 +36,7 @@ def etl_order():
                 "order_ts",
                 "food_ready_ts",
                 "distance_km",
-                "deliveried_ts",
+                "delivered_ts",
                 "price_baht",
                 "rider_rating",
             ]
@@ -51,15 +51,15 @@ def etl_order():
 
         stmt = text(
             """
-        INSERT INTO stg_orders (order_id, user_id, rider_id, order_ts, food_ready_ts, distance_km, deliveried_ts, price_baht, rider_rating )
-        VALUES (:order_id, :user_id, :rider_id, :order_ts, :food_ready_ts, :distance_km, :deliveried_ts, :price_baht, :rider_rating )
+        INSERT INTO stg_orders (order_id, user_id, rider_id, order_ts, food_ready_ts, distance_km, delivered_ts, price_baht, rider_rating )
+        VALUES (:order_id, :user_id, :rider_id, :order_ts, :food_ready_ts, :distance_km, :delivered_ts, :price_baht, :rider_rating )
         ON CONFLICT (order_id) DO UPDATE SET
             user_id = EXCLUDED.user_id,
             rider_id = EXCLUDED.rider_id,
             order_ts = EXCLUDED.order_ts,
             food_ready_ts = EXCLUDED.food_ready_ts,
             distance_km = EXCLUDED.distance_km,
-            deliveried_ts = EXCLUDED.deliveried_ts,
+            delivered_ts = EXCLUDED.delivered_ts,
             price_baht = EXCLUDED.price_baht,
             rider_rating = EXCLUDED.rider_rating;
         """

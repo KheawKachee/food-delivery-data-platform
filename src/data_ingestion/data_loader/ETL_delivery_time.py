@@ -21,7 +21,7 @@ def ETL_avg_rider_rating():
         stg_orders_df = pd.read_sql_table("stg_orders", engine)
         df = pd.DataFrame(
             columns=[
-                "order_ts",
+                "order_id" "order_ts",
                 "delivery_time",
                 "distance_km",
                 "user_zone",
@@ -29,15 +29,37 @@ def ETL_avg_rider_rating():
                 "avg_rider_rating",
             ]
         )
+        df["order_id"] = stg_orders_df["order_id"]
 
         df["order_ts"] = stg_orders_df["order_ts"]
 
-        time_interval = (  # delivery time interval
+        df["delivery_time"] = (  # delivery time interval
             stg_orders_df["delivered_ts"] - stg_orders_df["food_ready_ts"]
-        ).dt.total_seconds() / 3600
-        stg_orders_df["delivery_hours"] = time_interval.dt.total_seconds() / 3600
-        stg_orders_df["delivery_time_str"] = time_interval.astype(str)
-        pass
+        )
+        df["distance_km"] = stg_orders_df["distance_km"]
+        df["user_zone"] = stg_orders_df["user_zone"]
+        df["rider_zone"] = stg_orders_df["rider_zone"]
+        df["avg_rider_rating"] = stg_orders_df.groupby("rider_id")[
+            "rider_rating"
+        ].transform("mean")
+
+        stmt = text(
+            f"""
+        INSERT INTO delivery)time (order_id, order_ts, delivery_time, distance_km, user_zone, rider_zone, avg_rider_rating)
+        VALUES (:order_id, :order_ts, :delivery_time, :distance_km, :user_zone, :rider_zone, :avg_rider_rating)
+        ON CONFLICT (order_id) DO UPDATE SET
+            order_ts = EXCLUDED.order_ts,
+            delivery_time = EXCLUDED.delivery_time,
+            distance_km = EXCLUDED.distance_km, 
+            user_zone = EXCLUDED.user_zone,  
+            rider_zone = EXCLUDED.rider_zone,
+            avg_rider_rating = EXCLUDED.avg_rider_rating
+        """
+        )
+
+        with engine.begin() as conn:
+            conn.execute(stmt, df.to_dict(orient="records"))
+            log.info("query successfully")
 
     except Exception as e:
         log.error("".join(traceback.format_exception(type(e), e, e.__traceback__)))

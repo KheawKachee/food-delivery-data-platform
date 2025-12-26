@@ -14,7 +14,7 @@ default_args = {
 
 with DAG(
     "order_pipeline",
-    start_date=datetime(2024, 12, 25),
+    start_date=datetime(2024, 12, 26),
     schedule="@daily",
     catchup=False,
     default_args=default_args,

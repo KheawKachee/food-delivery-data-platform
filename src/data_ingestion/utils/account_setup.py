@@ -33,8 +33,8 @@ def account_setup():
 
     rider_stmt = text(
         """ 
-    INSERT INTO stg_riders (rider_id, signup_date, zone, avg_rider_rating)
-    VALUES (:rider_id, :signup_date, :zone, NULL)
+    INSERT INTO stg_riders (rider_id, signup_date, zone)
+    VALUES (:rider_id, :signup_date, :zone)
     ON CONFLICT (rider_id)
     DO UPDATE SET
         signup_date = EXCLUDED.signup_date,

@@ -56,7 +56,7 @@ CREATE TABLE avg_rider_rating (
 );
 
 CREATE TABLE hourly_total_spends (
-    time_interval DATE PRIMARY KEY,
+    hourly DATE PRIMARY KEY,
     n_orders NUMERIC(6,2) CHECK (total_price_baht >= 0),
     total_price_baht NUMERIC(12,2) CHECK (total_price_baht >= 0)
 );

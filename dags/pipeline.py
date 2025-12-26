@@ -41,6 +41,19 @@ with DAG(
         task_id="etl_avg_rider_rating",
         bash_command=f"python src/data_ingestion/data_loader/ETL_avg_rider_rating.py",
     )
+    etl_hourly_total_spends = BashOperator(
+        task_id="etl_hourly_total_spends",
+        bash_command=f"python src/data_ingestion/data_loader/ETL_delivery_time.py",
+    )
+    etl_delivery_time = BashOperator(
+        task_id="etl_delivery_time",
+        bash_command=f"python src/data_ingestion/data_loader/ETL_hourly_total_spends.py",
+    )
 
 
-generate >> load_raw >> etl_order >> etl_avg_rider_rating
+(
+    generate
+    >> load_raw
+    >> etl_order
+    >> [etl_avg_rider_rating, etl_hourly_total_spends, etl_delivery_time]
+)

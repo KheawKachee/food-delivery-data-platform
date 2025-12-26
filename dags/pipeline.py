@@ -18,6 +18,8 @@ with DAG(
     schedule="@daily",
     catchup=False,
     default_args=default_args,
+    max_active_runs=1,  # parallelism control
+    max_active_tasks=1,  # parallelism control
 ) as dag:
 
     generate = BashOperator(

@@ -41,7 +41,7 @@ CREATE TABLE stg_orders (
 CREATE TABLE delivery_time (
     order_id INT NOT NULL PRIMARY KEY,
     order_ts TIMESTAMP,
-    delivery_time NUMERIC(6,2) CHECK (delivery_time >= 0),
+    delivery_time INTERVAL NOT NULL,
     distance_km NUMERIC(6,2) CHECK (distance_km > 0),
     user_zone VARCHAR(5) NOT NULL,
     rider_zone VARCHAR(5) NOT NULL,
@@ -56,8 +56,8 @@ CREATE TABLE avg_rider_rating (
 );
 
 CREATE TABLE hourly_total_spends (
-    hourly DATE PRIMARY KEY,
-    n_orders NUMERIC(6,2) CHECK (total_price_baht >= 0),
+    hourly TIMESTAMP PRIMARY KEY,
+    n_orders INT CHECK (n_orders >= 0),
     total_price_baht NUMERIC(12,2) CHECK (total_price_baht >= 0)
 );
 

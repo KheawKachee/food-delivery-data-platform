@@ -1,0 +1,1 @@
+cp /home/kheaw/proj/food-delivery-data-platform/dags/pipeline.py $AIRFLOW_HOME/dags/

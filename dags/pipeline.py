@@ -34,7 +34,7 @@ with DAG(
 
     stg_order = BashOperator(
         task_id="to_stg_order",
-        bash_command=f"python src/data_ingestion/data_loader/stg_order.py",
+        bash_command=f"python src/data_ingestion/data_loader/stg_orders.py",
     )
 
     mart_avg_rider_rating = BashOperator(

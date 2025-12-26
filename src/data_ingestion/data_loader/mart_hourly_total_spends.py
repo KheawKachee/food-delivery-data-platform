@@ -19,19 +19,25 @@ def ETL_hourly_total_spends():
         engine = create_engine(os.getenv("DATABASE_URL"))
 
         stg_orders_df = pd.read_sql_table("stg_orders", engine)
-        df = pd.DataFrame(columns=["time", "n_orders", "total_price_baht"])
 
-        df["hourly"] = stg_orders_df["order_ts"].dt.floor("H")
-        df["total_price_baht"] = stg_orders_df.groupby("hour")["total_price_baht"].agg
-        df["n_jobs"] = stg_orders_df.goroupby("hour")["order_id"].agg("count")
+        stg_orders_df["hourly"] = stg_orders_df["order_ts"].dt.floor("H")
+
+        df = (
+            stg_orders_df.groupby("hourly", as_index=False)
+            .agg(
+                total_price_baht=("price_baht", "sum"),
+                n_orders=("order_id", "count"),
+            )
+            .sort_values("hourly")
+        )
 
         stmt = text(
             f"""
-        INSERT INTO avg_rider_rating (hourly, total_price_baht, n_jobs)
-        VALUES (:hourly, :total_price_baht, :n_jobs)
+        INSERT INTO hourly_total_spends (hourly, n_orders,total_price_baht)
+        VALUES (:hourly, :n_orders, :total_price_baht)
         ON CONFLICT (hourly) DO UPDATE SET
-            total_price_baht = EXCLUDED.total_price_baht,
-            n_jobs = EXCLUDED.n_jobs,
+            n_orders = EXCLUDED.n_orders,
+            total_price_baht = EXCLUDED.total_price_baht
         """
         )
 

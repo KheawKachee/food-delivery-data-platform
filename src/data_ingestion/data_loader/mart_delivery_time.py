@@ -19,6 +19,8 @@ def ETL_avg_rider_rating():
         engine = create_engine(os.getenv("DATABASE_URL"))
 
         stg_orders_df = pd.read_sql_table("stg_orders", engine)
+        stg_users_df = pd.read_sql_table("stg_users", engine)
+        stg_riders_df = pd.read_sql_table("stg_riders", engine)
         df = pd.DataFrame(
             columns=[
                 "order_id" "order_ts",
@@ -33,19 +35,19 @@ def ETL_avg_rider_rating():
 
         df["order_ts"] = stg_orders_df["order_ts"]
 
-        df["delivery_time"] = (  # delivery time interval
-            stg_orders_df["delivered_ts"] - stg_orders_df["food_ready_ts"]
-        )
+        df["delivery_time"] = stg_orders_df["deliveried_ts"].apply(
+            pd.to_datetime
+        ) - stg_orders_df["food_ready_ts"].apply(pd.to_datetime)
         df["distance_km"] = stg_orders_df["distance_km"]
-        df["user_zone"] = stg_orders_df["user_zone"]
-        df["rider_zone"] = stg_orders_df["rider_zone"]
+        df["user_zone"] = stg_users_df["zone"]
+        df["rider_zone"] = stg_riders_df["zone"]
         df["avg_rider_rating"] = stg_orders_df.groupby("rider_id")[
             "rider_rating"
         ].transform("mean")
 
         stmt = text(
             f"""
-        INSERT INTO delivery)time (order_id, order_ts, delivery_time, distance_km, user_zone, rider_zone, avg_rider_rating)
+        INSERT INTO delivery_time (order_id, order_ts, delivery_time, distance_km, user_zone, rider_zone, avg_rider_rating)
         VALUES (:order_id, :order_ts, :delivery_time, :distance_km, :user_zone, :rider_zone, :avg_rider_rating)
         ON CONFLICT (order_id) DO UPDATE SET
             order_ts = EXCLUDED.order_ts,

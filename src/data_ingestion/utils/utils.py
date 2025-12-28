@@ -56,8 +56,6 @@ def generate_orders(users_df, riders_df, zones, N_ORDERS, rng, mean_extra_distan
     # Compute distances: compare actual rider zone with user zone
     user_zone = users_df["zone"].iloc[order_user_ids].values
     rider_zone = riders_df["zone"].iloc[order_rider_ids].values
-    print("user_zone:", user_zone)
-    print("rider_zone:", rider_zone)
     base_distances = np.round(rng.uniform(0.5, 25, size=N_ORDERS), 2)
     extra = rng.normal(mean_extra_distance, 5, size=N_ORDERS)
     distance = base_distances + np.where(user_zone != rider_zone, extra, 0)

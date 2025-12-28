@@ -84,12 +84,7 @@ def generate_order_times(
     seconds = np.concatenate([seconds_peaks, seconds_noise])
     seconds = np.clip(seconds, 0, 24 * 3600 - 1).astype(int)
 
-    return np.array(
-        [
-            start_date + dt.timedelta(days=int(days_offset), seconds=int(s))
-            for s in seconds
-        ]
-    )
+    return np.array([start_date + dt.timedelta(seconds=int(s)) for s in seconds])
 
 
 def get_speed(order_times, base_speed=40, rush_speed=24):

@@ -18,7 +18,6 @@ def data_generator(execution_date: str):
     try:
         # one fixed sample path -> one realization
         execution_date = pd.to_datetime(execution_date)
-        start_date = execution_date
         start_order_id = 0
         seed = None
         rng = np.random.default_rng(seed)
@@ -42,7 +41,7 @@ def data_generator(execution_date: str):
         debug_vars(data_path=DATA_PATH)
 
         if os.path.exists(USERS_DATA_PATH) and os.path.exists(RIDERS_DATA_PATH):
-            print("Files found. Loading existing data...")
+            print("users & riders files found. Loading existing data...")
             # Load the existing JSON files into DataFrames
             users_df = pd.read_json(USERS_DATA_PATH)
             riders_df = pd.read_json(RIDERS_DATA_PATH)
@@ -53,6 +52,8 @@ def data_generator(execution_date: str):
 
             order_file = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
             if order_file:
+                print("orders files found. Checking latest file...")
+
                 latest_file = max(order_file, key=os.path.getmtime)
 
                 latest_filename = (
@@ -67,15 +68,16 @@ def data_generator(execution_date: str):
                     previous_orders_df = pd.read_json(latest_file)
 
                     start_order_id = previous_orders_df["order_id"].max() + 1
-                    start_date = pd.to_datetime(previous_orders_df["order_ts"].max())
 
-                    debug_vars(start_date=start_date, start_order_id=start_order_id)
+                    debug_vars(start_order_id=start_order_id)
                 else:
                     print(f"already generated for this date ({execution_date.date()})")
                     return None
+            else:
+                print("no orders file found. Starting fresh...")
 
         else:
-            print("Files not found. Generating inital data...")
+            print("users & riders files not found. Generating inital data...")
             zones = np.array(["A", "B", "C"])
 
             # USERS
@@ -85,7 +87,7 @@ def data_generator(execution_date: str):
                 {
                     "user_id": np.arange(N_USERS),
                     "signup_date": [
-                        start_date + dt.timedelta(days=int(d))
+                        execution_date + dt.timedelta(days=int(d))
                         for d in users_signup_days
                     ],
                     "zone": rng.choice(zones, N_USERS),
@@ -102,7 +104,7 @@ def data_generator(execution_date: str):
                 {
                     "rider_id": np.arange(N_RIDERS),
                     "signup_date": [
-                        start_date + dt.timedelta(days=int(d))
+                        execution_date + dt.timedelta(days=int(d))
                         for d in riders_signup_days
                     ],
                     "zone": rng.choice(["A", "B", "C"], N_RIDERS),
@@ -119,7 +121,7 @@ def data_generator(execution_date: str):
             users_df, riders_df, zones, N_ORDERS, rng
         )
 
-        order_ts = generate_order_times(start_date, N_ORDERS, rng=rng)
+        order_ts = generate_order_times(execution_date, N_ORDERS, rng=rng)
 
         prep_mins = 5 + 2.5 * rng.exponential(scale=3, size=N_ORDERS)
         prep_timedelta = [dt.timedelta(minutes=m) for m in prep_mins]
@@ -160,7 +162,7 @@ def data_generator(execution_date: str):
             <= (execution_date + pd.Timedelta(days=1)).date()
         ]
 
-        print((execution_date + pd.Timedelta(days=1)).date())
+        # print((execution_date + pd.Timedelta(days=1)).date())
 
         orders_df.to_json(
             os.path.join(DATA_PATH, f"orders_{execution_date}.json"),

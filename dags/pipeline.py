@@ -4,7 +4,7 @@ from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from datetime import datetime
 
 # Setup paths once
-PROJ_PATH = "/home/kheaw/proj/food-delivery-data-platform"
+PROJ_PATH = "/home/kheaw/projects/food-delivery-data-platform"
 PYTHON_EXEC = f"{PROJ_PATH}/venv/bin/python"
 
 default_args = {

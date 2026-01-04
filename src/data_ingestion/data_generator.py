@@ -50,18 +50,24 @@ def data_generator(execution_date: str):
 
             zones = np.union1d(users_zone, riders_zone)
 
-            order_file = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
-            if order_file:
-                print("orders files found. Checking latest file...")
+            order_files = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
 
-                latest_file = max(order_file, key=os.path.getmtime)
+            if order_files:
+                print("orders files found. Checking latest file by filename datetime...")
+
+                latest_file = max(
+                    order_files,
+                    key=lambda f: os.path.basename(f)
+                    .replace("orders_", "")
+                    .replace(".json", "")
+                )
 
                 latest_filename = (
                     os.path.basename(latest_file)
                     .replace("orders_", "")
                     .replace(".json", "")
                 )
-
+                
                 file_dt = pd.to_datetime(latest_filename)
 
                 if file_dt.date() != execution_date.date():

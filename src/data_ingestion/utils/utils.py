@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 def debug_vars(**variables):
     for name, value in variables.items():
-        print(f"{name} : {value}")
+        print(f">>> {name} : {value}")
 
 
 def generate_orders(users_df, riders_df, zones, N_ORDERS, rng, mean_extra_distance=25):
@@ -139,6 +139,6 @@ if __name__ == "__main__":
         users_df, riders_df, zones, N_ORDERS, rng
     )
 
-    print("Order User IDs:", order_user_ids)
-    print("Order Rider IDs:", order_rider_ids)
-    print("Distances:", distance)
+    print(">>> Order User IDs:", order_user_ids)
+    print(">>> Order Rider IDs:", order_rider_ids)
+    print(">>> Distances:", distance)

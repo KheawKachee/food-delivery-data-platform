@@ -42,7 +42,7 @@ def ingest():
 
         payloads_df = pd.DataFrame(rows)
 
-        print(f"payloads_df head:\n{payloads_df.head().to_string()}")
+        print(f">>> payloads_df head:\n{payloads_df.head().to_string()}")
 
         stmt = text(
             """
@@ -56,7 +56,7 @@ def ingest():
 
         with engine.begin() as conn:
             conn.execute(stmt, payloads_df.to_dict(orient="records"))
-            print("query successfully")
+            print(">>> query successfully")
 
     except Exception as e:
         print(

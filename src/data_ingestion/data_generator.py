@@ -41,7 +41,7 @@ def data_generator(execution_date: str):
         debug_vars(data_path=DATA_PATH)
 
         if os.path.exists(USERS_DATA_PATH) and os.path.exists(RIDERS_DATA_PATH):
-            print("users & riders files found. Loading existing data...")
+            print(">>> users & riders files found. Loading existing data...")
             # Load the existing JSON files into DataFrames
             users_df = pd.read_json(USERS_DATA_PATH)
             riders_df = pd.read_json(RIDERS_DATA_PATH)
@@ -53,7 +53,7 @@ def data_generator(execution_date: str):
             order_files = glob.glob(os.path.join(DATA_PATH, "orders_*.json"))
 
             if order_files:
-                print("orders files found. Checking latest file by filename datetime...")
+                print(">>> orders files found. Checking latest file by filename datetime...")
 
                 latest_file = max(
                     order_files,
@@ -77,13 +77,13 @@ def data_generator(execution_date: str):
 
                     debug_vars(start_order_id=start_order_id)
                 else:
-                    print(f"already generated for this date ({execution_date.date()})")
+                    print(f">>> already generated for this date ({execution_date.date()})")
                     return None
             else:
-                print("no orders file found. Starting fresh...")
+                print(">>> no orders file found. Starting fresh...")
 
         else:
-            print("users & riders files not found. Generating inital data...")
+            print(">>> users & riders files not found. Generating inital data...")
             zones = np.array(["A", "B", "C"])
 
             # USERS
@@ -176,7 +176,7 @@ def data_generator(execution_date: str):
             date_format="iso",
             index=False,
         )
-        print(f"generate {N_ORDERS} orders finished")
+        print(f">>> generate {N_ORDERS} orders finished")
         print(orders_df.describe().T)
     except Exception as e:
         print(

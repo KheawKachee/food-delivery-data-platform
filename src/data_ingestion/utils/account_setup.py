@@ -22,7 +22,7 @@ def account_setup():
     # sql statement
     user_stmt = text(
         """ 
-    INSERT INTO stg_users (user_id, signup_date, zone)
+    INSERT INTO users (user_id, signup_date, zone)
     VALUES (:user_id, :signup_date, :zone)
     ON CONFLICT (user_id)
     DO UPDATE SET
@@ -33,7 +33,7 @@ def account_setup():
 
     rider_stmt = text(
         """ 
-    INSERT INTO stg_riders (rider_id, signup_date, zone)
+    INSERT INTO riders (rider_id, signup_date, zone)
     VALUES (:rider_id, :signup_date, :zone)
     ON CONFLICT (rider_id)
     DO UPDATE SET
@@ -46,7 +46,7 @@ def account_setup():
     with engine.begin() as conn:
         conn.execute(user_stmt, user_records)
         conn.execute(rider_stmt, rider_records)
-        print("Staging users and riders completed.")
+        print(">>> Staging users and riders completed.")
 
 
 if __name__ == "__main__":

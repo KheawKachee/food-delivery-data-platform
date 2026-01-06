@@ -18,8 +18,8 @@ with DAG(
     schedule="@daily",
     catchup=False,
     default_args=default_args,
-    max_active_runs=1,  # parallelism control
-    max_active_tasks=1,  # parallelism control
+    max_active_runs=1,
+    max_active_tasks=1,
 ) as dag:
 
     generate = BashOperator(
@@ -27,33 +27,29 @@ with DAG(
         bash_command="python src/data_ingestion/data_generator.py {{ ds }}",
     )
 
-    load_raw = BashOperator(
-        task_id="raw_json_loader",
-        bash_command=f"python src/data_ingestion/data_loader/ingestion.py",
+    load_raw_orders = BashOperator(
+        task_id="raw_orders_json_loader",
+        bash_command="python src/data_ingestion/data_loader/ingest_orders.py",
     )
 
-    stg_order = BashOperator(
-        task_id="to_stg_order",
-        bash_command=f"python src/data_ingestion/data_loader/stg_orders.py",
+    load_raw_riders = BashOperator(
+        task_id="raw_riders_json_loader",
+        bash_command="python src/data_ingestion/data_loader/ingest_riders.py",
     )
 
-    mart_avg_rider_rating = BashOperator(
-        task_id="mart_avg_rider_rating",
-        bash_command=f"python src/data_ingestion/data_loader/mart_avg_rider_rating.py",
-    )
-    mart_delivery_time = BashOperator(
-        task_id="mart_delivery_time",
-        bash_command=f"python src/data_ingestion/data_loader/mart_delivery_time.py",
-    )
-    mart_hourly_total_spends = BashOperator(
-        task_id="mart_hourly_total_spends",
-        bash_command=f"python src/data_ingestion/data_loader/mart_hourly_total_spends.py",
+    load_raw_users = BashOperator(
+        task_id="raw_users_json_loader",
+        bash_command="python src/data_ingestion/data_loader/ingest_users.py",
     )
 
+    dbt_run = BashOperator(
+        task_id="dbt_run",
+        bash_command="cd dbt && dbt run",
+    )
 
-(
-    generate
-    >> load_raw
-    >> stg_order
-    >> [mart_avg_rider_rating, mart_delivery_time, mart_hourly_total_spends]
-)
+    dbt_test = BashOperator(
+        task_id="dbt_test",
+        bash_command="cd dbt && dbt test",
+    )
+
+    generate >> [load_raw_orders,load_raw_riders,load_raw_users] >> dbt_run >> dbt_test

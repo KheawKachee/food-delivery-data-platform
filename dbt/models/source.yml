@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: public
+    tables:
+      - name: raw_orders
+        description: Raw order events ingested from JSON files
+
+      - name: raw_users
+        description: Raw users ingested from users.json
+
+      - name: raw_riders
+        description: Raw riders ingested from riders.json

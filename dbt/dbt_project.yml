@@ -1,0 +1,11 @@
+name: food_delivery
+version: '1.0'
+profile: food_delivery
+
+model-paths: ["models"]
+models:
+  food_delivery:
+    staging:
+      materialized: incremental
+    marts:
+      materialized: incremental

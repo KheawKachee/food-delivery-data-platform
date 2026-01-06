@@ -1,0 +1,11 @@
+food_delivery:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      user: food
+      password: secret
+      port: 5432
+      dbname: food_db
+      schema: public

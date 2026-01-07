@@ -4,7 +4,7 @@ set -e
 # -------- CONFIG --------
 export AIRFLOW_HOME="$HOME/airflow"
 export AIRFLOW__CORE__LOAD_EXAMPLES=false
-PROJ_PATH="$HOME/proj/food-delivery-data-platform"
+PROJ_PATH="$HOME/projects/food-delivery-data-platform"
 
 echo "Initializing Airflow at $AIRFLOW_HOME"
 

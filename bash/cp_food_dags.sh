@@ -1,1 +1,1 @@
-cp /home/kheaw/proj/food-delivery-data-platform/dags/pipeline.py $AIRFLOW_HOME/dags/
+cp /home/kheaw/projects/food-delivery-data-platform/dags/pipeline.py $AIRFLOW_HOME/dags/

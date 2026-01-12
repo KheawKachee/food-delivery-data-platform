@@ -3,13 +3,19 @@ from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from datetime import datetime
 
-# Setup paths once
+from dotenv import load_dotenv
+
+
+import os
+
+load_dotenv()
+
 PROJ_PATH = "/home/kheaw/projects/food-delivery-data-platform"
-PYTHON_EXEC = f"{PROJ_PATH}/venv/bin/python"
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 default_args = {
-    "cwd": PROJ_PATH,  # use this as current dir
-    "env": {"PATH": f"{PROJ_PATH}/venv/bin:$PATH"},  # use venv
+    "cwd": PROJ_PATH,
 }
 
 with DAG(
@@ -19,27 +25,70 @@ with DAG(
     catchup=False,
     default_args=default_args,
     max_active_runs=1,
-    max_active_tasks=1,
 ) as dag:
 
+    create_raw_tables = SQLExecuteQueryOperator(
+        task_id="create_raw_tables",
+        conn_id="postgres_food",
+        sql="""
+        create schema if not exists raw;
+
+        create table if not exists raw.raw_orders (
+            order_id   bigint,
+            payload    jsonb,
+            ingest_ts  timestamp
+        );
+
+        create table if not exists raw.raw_users (
+            user_id    bigint,
+            payload    jsonb,
+            ingest_ts  timestamp
+        );
+
+        create table if not exists raw.raw_riders (
+            rider_id   bigint,
+            payload    jsonb,
+            ingest_ts  timestamp
+        );
+        """,
+    )
+
     generate = BashOperator(
-        task_id="generate",
-        bash_command="python src/data_ingestion/data_generator.py {{ ds }}",
+        task_id="generate_data",
+        bash_command="python src/data_generator.py {{ ds }}",
     )
 
-    load_raw_orders = BashOperator(
-        task_id="raw_orders_json_loader",
-        bash_command="python src/data_ingestion/data_loader/ingest_orders.py",
+    spark_orders = BashOperator(
+        task_id="spark_ingest_orders",
+        bash_command="""
+        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
+        spark-submit \
+    --master local[*] \
+    --packages org.postgresql:postgresql:42.7.3 \
+    data_platform/ingestion/ingest_orders.py
+    """,
     )
 
-    load_raw_riders = BashOperator(
-        task_id="raw_riders_json_loader",
-        bash_command="python src/data_ingestion/data_loader/ingest_riders.py",
+    spark_riders = BashOperator(
+        task_id="spark_ingest_riders",
+        bash_command="""
+        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
+    spark-submit \
+       --master local[*] \
+    --packages org.postgresql:postgresql:42.7.3 \
+      data_platform/ingestion/ingest_riders.py
+    """,
     )
 
-    load_raw_users = BashOperator(
-        task_id="raw_users_json_loader",
-        bash_command="python src/data_ingestion/data_loader/ingest_users.py",
+    spark_users = BashOperator(
+        task_id="spark_ingest_users",
+        bash_command="""
+    export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
+    spark-submit \
+       --master local[*] \
+    --packages org.postgresql:postgresql:42.7.3 \
+      data_platform/ingestion/ingest_users.py
+    """,
     )
 
     dbt_run = BashOperator(
@@ -52,4 +101,10 @@ with DAG(
         bash_command="cd dbt && dbt test",
     )
 
-    generate >> [load_raw_orders,load_raw_riders,load_raw_users] >> dbt_run >> dbt_test
+    (
+        create_raw_tables
+        >> generate
+        >> [spark_orders, spark_riders, spark_users]
+        >> dbt_run
+        >> dbt_test
+    )

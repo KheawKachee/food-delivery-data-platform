@@ -3,6 +3,8 @@ apache-airflow-providers-postgres>=6.5.1
 
 dbt-postgres>=1.8.0
 
+pyspark>=4.1.0
+
 pandas>=2.1,<2.3
 numpy>=1.26,<2.0
 

@@ -1,0 +1,4 @@
+{
+  "python.defaultInterpreterPath": "~/projects/food-delivery-data-platform/venv/bin/python",
+  "python.terminal.activateEnvironment": true
+}

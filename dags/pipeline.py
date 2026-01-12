@@ -11,6 +11,8 @@ import os
 load_dotenv()
 
 PROJ_PATH = "/home/kheaw/projects/food-delivery-data-platform"
+DBT_BIN = "$PROJ_PATH/venv/bin/dbt"
+DBT_PROJECT_DIR = "$PROJ_PATH/data_platform/dbt"
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -58,53 +60,54 @@ with DAG(
         bash_command="python src/data_generator.py {{ ds }}",
     )
 
-    spark_orders = BashOperator(
-        task_id="spark_ingest_orders",
-        bash_command="""
-        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
-        spark-submit \
-    --master local[*] \
-    --packages org.postgresql:postgresql:42.7.3 \
-    data_platform/ingestion/ingest_orders.py
-    """,
-    )
-
-    spark_riders = BashOperator(
-        task_id="spark_ingest_riders",
-        bash_command="""
-        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
-    spark-submit \
-       --master local[*] \
-    --packages org.postgresql:postgresql:42.7.3 \
-      data_platform/ingestion/ingest_riders.py
-    """,
-    )
-
-    spark_users = BashOperator(
-        task_id="spark_ingest_users",
-        bash_command="""
+    ingest_orders = BashOperator(
+    task_id="ingest_orders",
+    bash_command="""
     export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
-    spark-submit \
-       --master local[*] \
-    --packages org.postgresql:postgresql:42.7.3 \
-      data_platform/ingestion/ingest_users.py
+    python data_platform/ingestion/ingest_orders.py
     """,
+    )
+
+    ingest_riders = BashOperator(
+        task_id="ingest_riders",
+        bash_command="""
+        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
+        python data_platform/ingestion/ingest_riders.py
+        """,
+    )
+
+    ingest_users = BashOperator(
+        task_id="ingest_users",
+        bash_command="""
+        export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
+        python data_platform/ingestion/ingest_users.py
+        """,
     )
 
     dbt_run = BashOperator(
-        task_id="dbt_run",
-        bash_command="cd dbt && dbt run",
+    task_id="dbt_run",
+    bash_command=(
+        f"{DBT_BIN} run "
+        f"--project-dir {DBT_PROJECT_DIR} "
+        f"--profiles-dir {DBT_PROJECT_DIR}"
+    ),
+    env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"}
     )
 
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command="cd dbt && dbt test",
+        bash_command=(
+            f"{DBT_BIN} test "
+            f"--project-dir {DBT_PROJECT_DIR} "
+            f"--profiles-dir {DBT_PROJECT_DIR}"
+        ),
+        env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"}
     )
 
     (
         create_raw_tables
         >> generate
-        >> [spark_orders, spark_riders, spark_users]
+        >> [ingest_orders, ingest_riders, ingest_users]
         >> dbt_run
         >> dbt_test
     )

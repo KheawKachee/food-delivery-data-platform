@@ -1,4 +1,4 @@
-{{ config(materialized='incremental', unique_key='user_id') }}
+{{ config(materialized='table', unique_key='user_id') }}
 
 select
     (payload->>'user_id')::bigint      as user_id,

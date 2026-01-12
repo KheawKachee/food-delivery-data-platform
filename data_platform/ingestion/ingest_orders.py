@@ -1,31 +1,53 @@
-from pyspark.sql import functions as F
-from spark_session import *
-
+import json
+import os
 from pathlib import Path
+from datetime import datetime, timezone
+import pandas as pd
+import numpy as np  # Add this for NaN handling
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
 
-spark = get_spark("raw_ingestion")
+load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_PATH = BASE_DIR / "data"
 
-DATA_PATH = str(BASE_DIR / "data" / "orders_*.json")
+files = list(DATA_PATH.glob("orders_*.json"))
+if not files:
+    raise FileNotFoundError("No order files found")
 
-df = spark.read.json(DATA_PATH)
-
-raw_orders = (
-    df.withColumn("order_id", F.col("order_id"))
-    .withColumn("event_date", F.to_date("order_ts"))
-    .withColumn("payload", F.to_json(F.struct("*")))
-    .withColumn("ingest_ts", F.current_timestamp())
+df = pd.concat(
+    [pd.read_json(p) for p in files],
+    ignore_index=True,
 )
 
-(
-    raw_orders.select("order_id", "payload", "ingest_ts")
-    .write.format("jdbc")
-    .option("url", POSTGRES_URL)
-    .option("dbtable", "raw.raw_orders")
-    .option("user", POSTGRES_USER)
-    .option("password", POSTGRES_PASSWORD)
-    .option("driver", "org.postgresql.Driver")
-    .mode("append")
-    .save()
+REQUIRED_COLS = {"order_id", "order_ts"}
+missing = REQUIRED_COLS - set(df.columns)
+if missing:
+    raise ValueError(f"Missing required columns: {missing}")
+
+
+df = df.replace({np.nan: None})
+df["payload"] = df.apply(lambda r: json.dumps(r.to_dict()), axis=1)
+
+
+ingest_ts = datetime.now(timezone.utc)
+df["ingest_ts"] = ingest_ts
+
+raw_orders = df[["order_id", "payload", "ingest_ts"]]
+
+
+
+engine = create_engine(DATABASE_URL)
+
+raw_orders.to_sql(
+    "raw_orders",
+    engine,
+    schema="raw",
+    if_exists="append",
+    index=False,
+    chunksize=1000,
 )
+
+print(f">>> Ingested {len(raw_orders)} rows at {ingest_ts}")

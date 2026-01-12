@@ -177,9 +177,9 @@ def data_generator(execution_date: str):
             index=False,
         )
         print(f">>> generate {N_ORDERS} orders finished")
-        print(orders_df.describe().T)
+        print(">>>",orders_df.describe().T)
     except Exception as e:
-        print(
+        print(">>>",
             "".join(traceback.format_exception(type(e), e, e.__traceback__)),
         )
         sys.exit(1)

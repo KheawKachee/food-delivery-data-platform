@@ -25,15 +25,17 @@ This system is designed to:
 ## System Architecture (High Level)
 
 ```
+Using Airflow : 
+
 Data Generator
    ↓
 Raw Events (JSON)
    ↓
-ETL Pipelines (Airflow)
+Ingestion (PySpark)
    ↓
-Data Warehouse (PostgreSQL)
+ETL Pipelines (dbt)
    ↓
-Analytics Tables (SQL)
+Data Warehouse / Data Mart (PostgreSQL)
    ↓
 ML Training & Inference
    ↓

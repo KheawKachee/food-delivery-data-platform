@@ -1,5 +1,5 @@
 name: food_delivery
-version: '1.0'
+version: '2.0'
 profile: food_delivery
 
 model-paths: ["models"]

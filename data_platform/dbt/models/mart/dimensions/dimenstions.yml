@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: dim_riders
+    columns:
+      - name: rider_id
+        tests: [not_null, unique]
+
+  - name: dim_users
+    columns:
+      - name: user_id
+        tests: [not_null, unique]

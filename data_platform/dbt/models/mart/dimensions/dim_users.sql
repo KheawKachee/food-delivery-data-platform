@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 select
-    rider_id,
-    zone as rider_zone,
+    user_id,
+    zone as user_zone,
     signup_date
-from {{ ref('staging_riders') }}
+from {{ ref('staging_users') }}

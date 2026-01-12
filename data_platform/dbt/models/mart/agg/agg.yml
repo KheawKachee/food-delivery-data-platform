@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: mart_delivery_time
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+
+  - name: mart_hourly_revenue
+    columns:
+      - name: hourly
+        tests: [not_null, unique]
+
+  - name: mart_rider_performance
+    columns:
+      - name: rider_id
+        tests: [not_null, unique]

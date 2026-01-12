@@ -5,3 +5,8 @@ models:
     columns:
       - name: order_id
         tests: [not_null, unique]
+  - name: fct_delivery_time
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+

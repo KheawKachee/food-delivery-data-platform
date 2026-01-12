@@ -36,16 +36,39 @@ riders as (
 
 ),
 
-joined as (
+base as (
 
     select
         o.order_id,
         o.order_ts,
+        o.user_id,
+        o.rider_id,
+
+        -- core target
         (o.delivered_ts - o.food_ready_ts) as delivery_time,
+
+        -- label for ops decision
+        case
+            when (o.delivered_ts - o.food_ready_ts) > interval '15 minutes'
+            then 1 else 0
+        end as is_delayed,
+
+        -- core features
         o.distance_km,
         u.user_zone,
         r.rider_zone,
-        avg(o.rider_rating) over (partition by o.rider_id) as avg_rider_rating
+
+        -- temporal features , hour and dayofweek
+        extract(hour from o.order_ts) as order_hour,
+        extract(dow from o.order_ts) as order_dow,
+
+        -- historical and not leakage
+        avg(o.rider_rating) over (
+            partition by o.rider_id
+            order by o.order_ts
+            rows between unbounded preceding and 1 preceding
+        ) as avg_rider_rating_hist
+
     from orders o
     left join users u on o.user_id = u.user_id
     left join riders r on o.rider_id = r.rider_id
@@ -53,4 +76,8 @@ joined as (
 )
 
 select *
-from joined
+from base
+
+{% if is_incremental() %}
+where order_ts > (select max(order_ts) from {{ this }})
+{% endif %}

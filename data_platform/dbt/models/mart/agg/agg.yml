@@ -1,11 +1,6 @@
 version: 2
 
 models:
-  - name: mart_delivery_time
-    columns:
-      - name: order_id
-        tests: [not_null, unique]
-
   - name: mart_hourly_revenue
     columns:
       - name: hourly

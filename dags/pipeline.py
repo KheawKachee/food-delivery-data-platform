@@ -61,8 +61,8 @@ with DAG(
     )
 
     ingest_orders = BashOperator(
-    task_id="ingest_orders",
-    bash_command="""
+        task_id="ingest_orders",
+        bash_command="""
     export PYTHONPATH=/home/kheaw/projects/food-delivery-data-platform
     python data_platform/ingestion/ingest_orders.py
     """,
@@ -85,13 +85,13 @@ with DAG(
     )
 
     dbt_run = BashOperator(
-    task_id="dbt_run",
-    bash_command=(
-        f"{DBT_BIN} run "
-        f"--project-dir {DBT_PROJECT_DIR} "
-        f"--profiles-dir {DBT_PROJECT_DIR}"
-    ),
-    env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"}
+        task_id="dbt_run",
+        bash_command=(
+            f"{DBT_BIN} run "
+            f"--project-dir {DBT_PROJECT_DIR} "
+            f"--profiles-dir {DBT_PROJECT_DIR}"
+        ),
+        env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"},
     )
 
     dbt_test = BashOperator(
@@ -101,7 +101,7 @@ with DAG(
             f"--project-dir {DBT_PROJECT_DIR} "
             f"--profiles-dir {DBT_PROJECT_DIR}"
         ),
-        env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"}
+        env={"PROJ_PATH": "/home/kheaw/projects/food-delivery-data-platform"},
     )
 
     (

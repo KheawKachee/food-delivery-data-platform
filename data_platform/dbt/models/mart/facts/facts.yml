@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: fct_orders
+  - name: fct_orders  
     columns:
       - name: order_id
         tests: [not_null, unique]
-  - name: fct_delivery_time
+  - name: fct_delivery_time 
     columns:
       - name: order_id
         tests: [not_null, unique]

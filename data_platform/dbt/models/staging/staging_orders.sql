@@ -1,23 +1,25 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = 'order_id'
+    unique_key = 'order_id',
+    incremental_strategy = 'merge'
 ) }}
 
 WITH source_data AS (
-    SELECT
-        (payload::jsonb->>'order_id')::bigint               AS order_id,
-        (payload::jsonb->>'user_id')::bigint                AS user_id,
-        (payload::jsonb->>'rider_id')::bigint               AS rider_id,
-        NULLIF(payload::jsonb->>'order_ts','')::timestamp   AS order_ts,
-        NULLIF(payload::jsonb->>'food_ready_ts','')::timestamp AS food_ready_ts,
-        NULLIF(payload::jsonb->>'delivered_ts','')::timestamp  AS delivered_ts,
-        (payload::jsonb->>'distance_km')::numeric           AS distance_km,
-        (payload::jsonb->>'price_baht')::numeric            AS price_baht,
-        NULLIF(payload::jsonb->>'rider_rating','')::numeric AS rider_rating
-    FROM {{ source('raw', 'raw_orders') }}
+    select
+        (payload->>'order_id')::bigint       as order_id,
+        (payload->>'user_id')::bigint         as user_id,
+        (payload->>'rider_id')::bigint       as rider_id,
+        (payload->>'order_ts')::timestamp    as order_ts,
+        (payload->>'food_ready_ts')::timestamp as food_ready_ts,
+        (payload->>'delivered_ts')::timestamp  as delivered_ts,
+        (payload->>'distance_km')::numeric   as distance_km,
+        (payload->>'price_baht')::numeric    as price_baht,
+        nullif(payload->>'rider_rating','')::numeric as rider_rating,
+        ingest_ts::timestamp                 as updated_at
+    from {{ source('raw', 'raw_orders') }}
 
     {% if is_incremental() %}
-    WHERE (payload::jsonb->>'order_id')::bigint > (SELECT MAX(order_id) FROM {{ this }})
+    where ingest_ts::timestamp > (select coalesce(max(updated_at),'1900-01-01'::timestamp) from {{ this }})
     {% endif %}
 ),
 
@@ -26,7 +28,7 @@ deduplicated AS (
         *,
         ROW_NUMBER() OVER (
             PARTITION BY order_id 
-            ORDER BY order_ts DESC 
+            ORDER BY updated_at DESC 
         ) AS rn
     FROM source_data
 )
@@ -40,7 +42,8 @@ SELECT
     delivered_ts,
     distance_km,
     price_baht,
-    rider_rating
+    rider_rating,
+    updated_at
 FROM deduplicated
 WHERE rn = 1 
   AND order_id IS NOT NULL

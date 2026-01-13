@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = 'order_id'
+    unique_key = 'order_id',
+    incremental_strategy = 'merge'
 ) }}
 
 with orders as (
@@ -13,7 +14,8 @@ with orders as (
         food_ready_ts,
         delivered_ts,
         distance_km,
-        rider_rating
+        rider_rating,
+        updated_at
     from {{ ref('staging_orders') }}
 
 ),
@@ -67,16 +69,16 @@ base as (
             partition by o.rider_id
             order by o.order_ts
             rows between unbounded preceding and 1 preceding
-        ) as avg_rider_rating_hist
+        ) as avg_rider_rating_hist,
+
+        o.updated_at as updated_at
 
     from orders o
     left join users u on o.user_id = u.user_id
     left join riders r on o.rider_id = r.rider_id
 )
 
-select *
-from base
-
+select * from base
 {% if is_incremental() %}
-where order_id > (select max(order_id) from {{ this }})
+where updated_at > (select coalesce(max(updated_at),'1900-01-01'::timestamp) from {{ this }})
 {% endif %}

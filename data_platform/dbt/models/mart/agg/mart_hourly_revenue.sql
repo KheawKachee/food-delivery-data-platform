@@ -1,18 +1,19 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = 'hourly'
+    unique_key = 'hourly',
+    incremental_strategy = 'merge'
 ) }}
 
 with orders as (
     select
         date_trunc('hour', order_ts) as hourly,
         order_id,
-        price_baht
+        price_baht, 
+        updated_at
     from {{ ref('staging_orders') }}
     
     {% if is_incremental() %}
-    -- Use the full expression here, not the alias 'hourly'
-    WHERE date_trunc('hour', order_ts) > (SELECT max(hourly) FROM {{ this }})
+    where date_trunc('hour', order_ts) >= (select coalesce(max(hourly), '1900-01-01'::timestamp) from {{ this }})
     {% endif %}
 ),
 
@@ -20,7 +21,8 @@ agg as (
     select
         hourly,
         count(order_id) as n_orders,
-        sum(price_baht) as total_price_baht
+        sum(price_baht) as total_price_baht,
+        max(updated_at) as updated_at
     from orders
     group by 1
 )

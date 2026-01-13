@@ -49,8 +49,6 @@ raw_orders.to_sql(
     schema="raw",
     if_exists="append",
     index=False,
-    chunksize=1000,
-    dtype={"payload": JSONB},  # Specify JSONB type for payload
 )
 
 print(f">>> Ingested {len(raw_orders)} rows at {ingest_ts}")

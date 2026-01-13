@@ -72,7 +72,6 @@ base as (
     from orders o
     left join users u on o.user_id = u.user_id
     left join riders r on o.rider_id = r.rider_id
-
 )
 
 select *

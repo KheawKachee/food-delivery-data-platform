@@ -79,5 +79,5 @@ select *
 from base
 
 {% if is_incremental() %}
-where order_ts > (select max(order_ts) from {{ this }})
+where order_id > (select max(order_id) from {{ this }})
 {% endif %}

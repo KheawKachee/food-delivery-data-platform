@@ -35,7 +35,7 @@ raw_users.to_sql(
     "raw_users",
     engine,
     schema="raw",
-    if_exists="append",
+    if_exists="replace",
     index=False,
 )
 

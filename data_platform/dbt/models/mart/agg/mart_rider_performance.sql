@@ -10,7 +10,9 @@ with orders as (
         order_id,
         rider_rating
     from {{ ref('staging_orders') }}
-
+    {% if is_incremental() %}
+    WHERE rider_id > (SELECT rider_id FROM {{ this }})
+    {% endif %}
 ),
 
 agg as (

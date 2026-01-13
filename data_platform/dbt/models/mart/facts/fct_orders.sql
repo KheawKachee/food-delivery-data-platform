@@ -14,5 +14,5 @@ select
 from {{ ref('staging_orders') }} o
 
 {% if is_incremental() %}
-where o.order_ts > (select max(order_ts) from {{ this }})
+where o.order_id > (select max(order_id) from {{ this }})
 {% endif %}

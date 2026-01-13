@@ -4,7 +4,10 @@ from pathlib import Path
 from datetime import datetime, timezone
 import pandas as pd
 import numpy as np  # Add this for NaN handling
+
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import JSONB
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,7 +41,6 @@ df["ingest_ts"] = ingest_ts
 raw_orders = df[["order_id", "payload", "ingest_ts"]]
 
 
-
 engine = create_engine(DATABASE_URL)
 
 raw_orders.to_sql(
@@ -48,6 +50,7 @@ raw_orders.to_sql(
     if_exists="append",
     index=False,
     chunksize=1000,
+    dtype={"payload": JSONB},  # Specify JSONB type for payload
 )
 
 print(f">>> Ingested {len(raw_orders)} rows at {ingest_ts}")

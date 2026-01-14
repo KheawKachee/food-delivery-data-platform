@@ -25,6 +25,9 @@ df = pd.concat(
     ignore_index=True,
 )
 
+df['order_ts'] = pd.to_datetime(df['order_ts'])
+df = df.sort_values(by=['order_ts'],ascending=False).drop_duplicates(subset='order_id',keep='first')
+
 REQUIRED_COLS = {"order_id", "order_ts"}
 missing = REQUIRED_COLS - set(df.columns)
 if missing:

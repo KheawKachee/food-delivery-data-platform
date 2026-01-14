@@ -13,7 +13,6 @@ from sklearn.linear_model import LogisticRegression
 
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import cross_val_score
 
 from dotenv import load_dotenv
 
@@ -78,11 +77,5 @@ grid.fit(df[num_cols + cat_cols], df["is_delayed"])
 print(f"Best Params: {grid.best_params_}")
 cv_result = pd.DataFrame(grid.cv_results_)
 cv_result.to_csv('models/delivery_time_prediction/cv_result.csv')
+
 print(f"Best Accuracy: {grid.best_score_:.4f}")
-
-"""
-cv_scores = cross_val_score(pipe, df[num_cols + cat_cols], df["is_delayed"], cv=tss)
-
-print(f"Mean Accuracy: {cv_scores.mean():.4f}")
-
-"""

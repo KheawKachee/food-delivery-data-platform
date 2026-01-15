@@ -49,12 +49,6 @@ base as (
         -- core target
         (o.delivered_ts - o.food_ready_ts) as delivery_time,
 
-        -- label for ops decision
-        case
-            when (o.delivered_ts - o.food_ready_ts) > interval '15 minutes'
-            then 1 else 0
-        end as is_delayed,
-
         -- core features
         o.distance_km,
         u.user_zone,

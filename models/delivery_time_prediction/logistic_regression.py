@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import os
 from sqlalchemy import create_engine
 
@@ -42,10 +41,9 @@ df = pd.read_sql(query, engine)
 df.sort_values("order_ts", inplace=True)
 
 
-print(f'na contain in cols :\n {df.isna().sum()}')
+print(f"na contain in cols :\n {df.isna().sum()}")
 
 tss = TimeSeriesSplit()
-
 
 
 num_cols = ["distance_km", "order_hour", "order_dow", "avg_rider_rating_hist"]
@@ -59,23 +57,25 @@ preprocess = ColumnTransformer(
     ]
 )
 
-model = LogisticRegression(max_iter=1000,solver='saga') #saga for hypertuning regulator
+model = LogisticRegression(
+    max_iter=1000, solver="saga"
+)  # saga for hypertuning regulator
 scores = []
 
 param_grid = [
     {
-        'model__C': [0.1, 1.0, 10.0, 50.0, 100.0],
-        'model__l1_ratio': [0, 0.25, 0.5, 0.75, 1]
+        "model__C": [0.1, 1.0, 10.0, 50.0, 100.0],
+        "model__l1_ratio": [0, 0.25, 0.5, 0.75, 1],
     }
 ]
 
 pipe = Pipeline([("prep", preprocess), ("model", model)])
 
-grid = GridSearchCV(pipe, param_grid, cv=tss, scoring='accuracy')
+grid = GridSearchCV(pipe, param_grid, cv=tss, scoring="accuracy")
 grid.fit(df[num_cols + cat_cols], df["is_delayed"])
 
 print(f"Best Params: {grid.best_params_}")
 cv_result = pd.DataFrame(grid.cv_results_)
-cv_result.to_csv('models/delivery_time_prediction/cv_result.csv')
+cv_result.to_csv("models/delivery_time_prediction/cv_result.csv")
 
 print(f"Best Accuracy: {grid.best_score_:.4f}")

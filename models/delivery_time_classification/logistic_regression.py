@@ -1,19 +1,13 @@
-import pandas as pd
 import os
-from sqlalchemy import create_engine
 
-# Transformers
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import StandardScaler
-
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.model_selection import GridSearchCV
-
+import pandas as pd
 from dotenv import load_dotenv
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sqlalchemy import create_engine
 
 load_dotenv()
 

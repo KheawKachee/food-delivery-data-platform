@@ -109,44 +109,46 @@ All data is generated using Python scripts in `/src/data_generator.py` to simula
 * Data drift monitoring during model training
 
 ---
-
 ## Analytics & Feature Analysis
 
-### Key Metrics for Model Input & Evaluation
+### Key Features & Metrics for ML and Business Impact
 
-**Order-Level Features** (Predictive Signals):
-* Distance to delivery
-* Order time (hour of day, day of week) — Peak hours have longer delays
-* Price / order value — Premium orders may need priority routing
-* Historical order count per user — VIP users for priority assignment
-* Restaurant preparation time — Major factor in total delivery time
+**Order-Level Features (Model Inputs):**
+- `distance_km`: Delivery distance, a core driver of delivery time.
+- `order_hour`, `order_dow`: Time of order (hour/day); peak hours show higher delays.
+- `price_baht`: Order value; premium orders may require priority handling.
+- `user_zone`, `rider_zone`, `same_zone`: Delivery and rider zones; cross-zone deliveries may increase delays.
+- `avg_rider_rating_hist`: Historical average rider rating; higher ratings often correlate with fewer delays.
+- `zone_load_rolling`: Rolling average of recent delays in a zone, capturing congestion effects.
+- `hour_granular`: Engineered time bins to capture peak/off-peak patterns.
 
-**Rider-Level Features** (Assignment Optimization):
-* Completed deliveries (workload) — Busy riders may have higher error rates
-* Average rating — Proxy for reliability
-* Average delivery time — Strongest predictor of future performance
-* Recent availability — On-shift vs. off-shift status
-* Distance from pickup location — Impacts ETA accuracy
+**Rider-Level Features (Assignment & Optimization):**
+- Completed deliveries and workload: High workload may increase error rates.
+- Average delivery time: Predicts future performance.
+- Recent availability: On-shift status impacts assignment.
+- Distance from pickup: Affects ETA accuracy.
 
-**Business Metrics** (KPI Tracking):
-* Average delivery time (per hour, per restaurant, per rider) — Core SLA metric
-* Delivery time variance (reliability) — Lower variance = better customer trust
-* On-time delivery rate (< 30 min target) — Key driver of user satisfaction & retention
-* Rider utilization rate (orders per hour) — Profitability indicator
-* User return rate (inverse of churn) — Long-term revenue impact
-* Estimated cost per delivery — Profitability by segment
+**Business Metrics (KPI Tracking):**
+- Average delivery time (by hour, restaurant, rider): Core SLA metric.
+- Delivery time variance: Lower variance improves customer trust.
+- On-time delivery rate: Key for user satisfaction and retention.
+- Rider utilization rate: Orders per hour, indicating efficiency.
+- User return rate: Inverse of churn, linked to long-term revenue.
+- Estimated cost per delivery: Tracks profitability by segment.
 
-**Impact on Business Metrics**:
-| ML Insight | Business Action | Expected Outcome |
-|-----------|----------------|----|
-| Model predicts delays 10+ min | Flag order, offer incentive or reassign rider | ↑ On-time delivery, ↑ retention |
-| Identify high-risk restaurants | Pre-stage more riders, adjust pricing | ↑ SLA compliance |
-| Detect rider performance decline | Pause assignments, offer training | ↓ Quality issues, ↑ rating |
+**How ML Insights Drive Business Actions:**
 
-These metrics are computed in dbt staging/mart tables and used for:
-1. **Feature engineering** for ML models (raw signals → predictive power)
-2. **Model baseline/performance benchmarking** (Is the model better than avg delivery time?)
-3. **Monitoring model drift in production** (Has delivery behavior changed?)
+| ML Insight                        | Business Action                        | Expected Outcome                |
+|------------------------------------|----------------------------------------|---------------------------------|
+| High delay probability predicted   | Flag order, offer incentive/reassign   | ↑ On-time delivery, ↑ retention |
+| High-risk restaurant identified    | Pre-stage riders, adjust pricing       | ↑ SLA compliance                |
+| Rider performance decline detected | Pause assignments, offer training      | ↓ Quality issues, ↑ ratings     |
+
+These features and metrics are engineered in dbt and Python pipelines, used for:
+1. **Feature engineering**: Transforming raw data into predictive signals for ML models.
+2. **Model evaluation**: Benchmarking model performance against business baselines.
+3. **Production monitoring**: Tracking drift and operational changes over time.
+
 
 ---
 
